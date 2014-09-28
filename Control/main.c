@@ -1,15 +1,35 @@
-#include <stdio.h>
+#include <stdio.h>0
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
 
-#define PROBLEM 0
+#define PROBLEM 0 //Number of problem (1-6), set to activate needed part of main.
 
-#if PROBLEM == 2 || PROBLEM == 4
-    #define MAX_STR 100000
-#elif PROBLEM == 5
-    #define MAX_VARIANTS 615
-#endif
+#define MAX_STR 100000
+#define MAX_VARIANTS 615
+
+int** mirror_matrix(int m, int n, int **matrix) ///Problem 1
+{
+/** @return horizontal and vertical mirrored matrix
+*   @param m is number of rows
+*   @param n is number of columns
+*   @param matrix is matrix to mirror
+*/
+    int **mirrored_matrix = (int **)calloc (m, sizeof (*mirrored_matrix));
+    for (int i = 0; i < m; i++)
+    {
+        assert (0 <= i && i < m);
+        mirrored_matrix[i] = (int *)calloc (n, sizeof (*mirrored_matrix[i]));
+        for (int j = 0; j < n; j++)
+        {
+            assert (0 <= j && j < n);
+            assert (0 <= m - i - 1 && m - i - 1 < m);
+            assert (0 <= n - j - 1 && n - j - 1< n);
+            mirrored_matrix[i][j] = matrix[m - i - 1][n - j - 1];
+        }
+    }
+    return mirrored_matrix;
+} 
 
 int* four_sign_numbers(int sum, int * count) ///Problem 5
 {
@@ -39,7 +59,7 @@ char* delete_whitespaces(char source[]) ///Problem 2
 *    @return string without unnecessary whitespace
 *    @param source is source string
 */
-    int length = strlen(source);
+    int length = strlen (source);
     int pos = 0;
     char *str = (char *)calloc (length, sizeof(*str));
 
@@ -180,12 +200,13 @@ int main()
                 assert (0 <= j && j < size);
                 printf ("%d ", transposed_matrix[i][j]);
             }
-            free (transposed_matrix[i]);
-            free (matrix[i]);
-            mblen = nullptr;
-            transposed_matrix[i] = nullptr;
             printf ("\n");
         }
+
+        free(transposed_matrix);
+        transposed_matrix = nullptr;
+        free(matrix);
+        matrix = nullptr;
 
     #elif PROBLEM == 2
 
@@ -245,6 +266,44 @@ int main()
             printf("%d ", numbers[i]);
         }
         printf("\n%d\n", count);
+        free(numbers);
+        numbers = nullptr;
+
+    #elif PROBLEM == 6
+        int n = 0, m = 0;
+        scanf ("%d  %d", &m , &n);
+
+        //Input matrix
+        int **matrix = (int **)calloc (m, sizeof (*matrix));
+        for (int i = 0; i < m; i++)
+        {
+            assert(0 <= i && i < m);
+            matrix[i] = (int *)calloc (n, sizeof (*matrix[i]));
+            for (int j = 0; j < n; j++)
+            {
+                assert (0 <= j && j < n);
+                scanf ("%d", (matrix[i] + j));
+            }
+        }
+
+        int **mirrored_matrix = mirror_matrix (m, n, matrix);
+
+        //Output matrix
+        for (int i = 0; i < m; i++)
+        {
+            assert (0 <= i && i < m);
+            for (int j = 0; j < n; j++)
+            {
+                assert (0 <= j && j < n);
+                printf ("%d ", mirrored_matrix[i][j]);
+            }
+            printf ("\n");
+        }
+
+        free (mirrored_matrix);
+        free (matrix);
+        matrix = nullptr;
+        mirrored_matrix = nullptr;
 
     #endif
 
