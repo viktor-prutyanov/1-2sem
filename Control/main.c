@@ -1,173 +1,106 @@
-#include <stdio.h>0
+/**
+*   Problems from 2007-2009 tests
+*
+*   @date 09.2014 - 10.2014
+*
+*   @copyright GNU GPL v2.0
+*
+*   @author Viktor Prutyanov mailto:vitteran@gmail.com 
+*/
+
+#include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
+#include <math.h>
 
-#define PROBLEM 0 //Number of problem (1-6), set to activate needed part of main.
+#define PROBLEM 4 //Number of problem, set to activate needed part of main.
 
 #define MAX_STR 100000
 #define MAX_VARIANTS 615
 
-int** mirror_matrix(int m, int n, int **matrix) ///Problem 1
-{
-/** @return horizontal and vertical mirrored matrix
+typedef enum result_t { OK = 0, NULL_PTR_PARAM = -1 }; 
+
+/**
+*   @return 0 if all is OK and -1 if one of array is nullptr
+*   @param size is size of matrix
+*   @param in_matrix is matrix to transpose
+*   @param out_matrix is transposed matrix
+*/
+result_t transpose(int size, int **in_matrix, int **out_matrix); ///Problem 1
+
+/**
+*   @return 0 if all is OK and -1 if one of array is nullptr
+*   @param in_string is source string
+*   @param out_string is string without whitespaces
+*/
+result_t delete_whitespaces(char in_string[], char out_string[]); ///Problem 2
+
+/**
+*   @return 0 if all is OK and -1 if one of array is nullptr
+*   @param size is size of matrix
+*   @param in_matrix is matrix to sum
+*   @param out_array is an array of sums
+*/
+result_t sum_num_on_diag(int size, int **in_matrix, int *out_array); ///Problem 3
+
+/**
+*   @return 0 if all is OK and -1 if one of array is nullptr
+*   @param in_string is source string
+*   @param temp_string is temporary string
+*   @param out_string is filtered string
+*/
+result_t symbol_filter(char *in_string, char *temp_string, char *out_string); ///Problem 4
+
+/**
+*   @return 0 if all is OK and -1 if one of array is nullptr 
+*   @param sum is sum of signs 
+*   @param count is count of this numbers
+*   @param out_array is array of numbers
+*/
+result_t four_sign_numbers(int sum, int *count, int *out_array); ///Problem 5
+
+/** 
+*   @return 0 if all is OK and -1 if one of array is nullptr
 *   @param m is number of rows
 *   @param n is number of columns
-*   @param matrix is matrix to mirror
+*   @param in_matrix is matrix to mirror
+*   @param out_matrix is mirrored matrix 
 */
-    int **mirrored_matrix = (int **)calloc (m, sizeof (*mirrored_matrix));
-    for (int i = 0; i < m; i++)
-    {
-        assert (0 <= i && i < m);
-        mirrored_matrix[i] = (int *)calloc (n, sizeof (*mirrored_matrix[i]));
-        for (int j = 0; j < n; j++)
-        {
-            assert (0 <= j && j < n);
-            assert (0 <= m - i - 1 && m - i - 1 < m);
-            assert (0 <= n - j - 1 && n - j - 1< n);
-            mirrored_matrix[i][j] = matrix[m - i - 1][n - j - 1];
-        }
-    }
-    return mirrored_matrix;
-} 
+result_t mirror_matrix(int m, int n, int **in_matrix, int **out_matrix); ///Problem 6
 
-int* four_sign_numbers(int sum, int * count) ///Problem 5
-{
 /**
-*    @return array of 4-sign numbers, thats sum of signs is sum
-*    @param sum is sum of signs 
-*    @param count is count of this numbers
+*   Function extract prime numbers from array
+*   @param in_array is source array of unsigned longints
+*   @param out_array is array of unsigned longints with only prime numbers
+*   @param n is uint number of elements
+*   @param c is uint number of primes
+*   @return result_t 0 if all is OK and -1 if one or more of params is nullptr
 */
-    int *temp = (int *)calloc(MAX_VARIANTS, sizeof(*temp));
-    int p = 0;
-    for (int i = 1000; i < 10000; i++)
-    {
-        if ((i / 1000) + (i / 100) % 10 + (i / 10) % 10 + i % 10 == sum)
-        {
-            temp[p] = i;
-            p++;
-        }
-    }
+result_t prime_numbers(unsigned long int *in_array, unsigned long int *out_array, unsigned int n, unsigned int *c); ///Problem 7
 
-    *count = p;
-    return temp;
-}
-
-char* delete_whitespaces(char source[]) ///Problem 2
-{
 /**
-*    @return string without unnecessary whitespace
-*    @param source is source string
+*   Function checks is number prime or not.
+*   @param n is unsigned long integer number
+*   @return integer value 1 if number is prime and 0 if number is composite of -1 if number isn't composite or prime 
 */
-    int length = strlen (source);
-    int pos = 0;
-    char *str = (char *)calloc (length, sizeof(*str));
+int is_prime(unsigned long int n); ///Auxillary function
 
-    for (int i = 0; i < length - 1; i++)
-    {
-        assert (0 <= i && i < length - 1);
-        if (!((source[i] == ' ' || source[i] == '\t') && (source[i + 1] == ' ' || source[i + 1] == '\t')))
-        {
-            assert((i + 1) < length);
-            str[pos] = source[i];
-            pos++;
-        }
-        if (source[length - 1] != ' ' && source[length - 1] != '\t') str[pos] = source[length - 1];
-    }
-    return str;
-}
-
-char* symbol_filter(char source[]) ///Problem 4
-{
 /**
-*    @return string without unnecessary spaces and tabs, humbers changed to #, without upper case and without punctuation signs.
-*    @param source is source string
+*   Function determines is char digit or not        
+*   @param c is char value
+*   @return 1 if digit 0 if not
 */
-    char *temp_str = delete_whitespaces (source);
-    int length = strlen (temp_str);
-    char *result_str = (char *)calloc (length, sizeof(*result_str));
-    int pos = 0;
+int is_digit(char c);
 
-    for (int i = 0; i < length; i++)
-    {
-        assert(0 <= i && i < length);
-        if (!(temp_str[i] == '?'|| temp_str[i] == '!'|| temp_str[i] == '.'|| temp_str[i] == ',' || temp_str[i] == ';' || temp_str[i] == '-' || temp_str[i] == '(' || temp_str[i] == ')'))
-        {
-            if (48 <= temp_str[i] && temp_str[i] <= 57)
-            {
-                result_str[pos] = '#';
-            }
-            else if (65 <= temp_str[i] && temp_str[i] <= 90)
-            {
-                result_str[pos] = temp_str[i] + 32;
-            }
-            else
-            {
-                result_str[pos] = temp_str[i];
-            }
-            pos++;
-        }
-    }
-
-    free(temp_str);
-    temp_str = nullptr;
-    return result_str;
-}
-
-int* sum_num_on_diag(int size, int **matrix) ///Problem 3
-{
 /**
-*    @return array of sums by diagonal
-*    @param size is size of matrix
-*    @param matrix is matrix to sum
+*   Function determines is char punctuation sign or not        
+*   @param c is char value
+*   @return 1 if sign 0 if not
 */
-    
-    int *sums = (int*)calloc (2 * size - 1, sizeof (*sums));
-    for (int i = 0; i < size; i++)
-    {
-        for (int j = 0; j < i + 1; j++)
-        {
-            assert (0 <= j && j < size);
-            assert (0 <= (size - i + j - 1) && (size - i + j - 1) < size);
-            sums[i] += matrix[size - i + j - 1][j];
-        }
-    }
+int is_sign(char c);
 
-    for (int i = 0; i < size; i++)
-    {
-        for (int j = 0; j < i + 1; j++)
-        {
-            assert (0 <= j && j < size);
-            assert (0 <= (size - i + j - 1) && (size - i + j - 1) < size);
-            sums[size * 2 - 2 - i] += matrix[j][size - i + j - 1];
-        }
-    }
-
-    sums[size - 1] /= 2; 
-
-    return sums;
-}
-
-int** transpose(int size, int **matrix) ///Problem 1
-{
-/**
-*    @return transposed matrix
-*    @param size is size of matrix
-*    @param matrix is matrix to transpose
-*/
-    int **transposed_matrix = (int **)calloc (size, sizeof (*transposed_matrix));
-    for (int i = 0; i < size; i++)
-    {
-        assert (0 <= i && i < size);
-        transposed_matrix[i] = (int *)calloc (size, sizeof (*transposed_matrix[i]));
-        for (int j = 0; j < size; j++)
-        {
-            assert (0 <= j && j < size);
-            *(transposed_matrix[i] + j) = *(matrix[j] + i); 
-        }
-    }
-    return transposed_matrix;
-} 
+char to_upper_case(char c);
 
 int main()
 {
@@ -176,137 +109,406 @@ int main()
         int size = 0;
         scanf ("%d", &size);
 
-        //Input square matrix
-        int **matrix = (int **)calloc (size, sizeof (*matrix));
+        int **in_matrix = (int **)calloc (size, sizeof (*in_matrix));
+        int **out_matrix = (int **)calloc (size, sizeof (*out_matrix));
+
         for (int i = 0; i < size; i++)
         {
             assert(0 <= i && i < size);
-            matrix[i] = (int *)calloc (size, sizeof (*matrix[i]));
+            in_matrix[i] = (int *)calloc (size, sizeof (*in_matrix[i]));
+            out_matrix[i] = (int *)calloc (size, sizeof (*out_matrix[i]));
             for (int j = 0; j < size; j++)
             {
                 assert (0 <= j && j < size);
-                scanf ("%d", (matrix[i] + j));
+                scanf ("%d", (in_matrix[i] + j));
             }
         }
 
-        int **transposed_matrix = transpose (size, matrix);
+        transpose (size, in_matrix, out_matrix);
 
-        //Output matrix
         for (int i = 0; i < size; i++)
         {
             assert (0 <= i && i < size);
             for (int j = 0; j < size; j++)
             {
                 assert (0 <= j && j < size);
-                printf ("%d ", transposed_matrix[i][j]);
+                printf ("%d ", out_matrix[i][j]);
             }
             printf ("\n");
         }
 
-        free(transposed_matrix);
-        transposed_matrix = nullptr;
-        free(matrix);
-        matrix = nullptr;
+        free(in_matrix);
+        in_matrix = nullptr;
+        free(out_matrix);
+        out_matrix = nullptr;
 
     #elif PROBLEM == 2
 
-        char source_str[MAX_STR];
-        gets (source_str);
-        printf ("%s\n", delete_whitespaces (source_str));
+        char *in_string = (char *)calloc (MAX_STR, sizeof(char));
+        char *out_string = (char *)calloc (MAX_STR, sizeof(char));
+
+        gets (in_string);
+        delete_whitespaces (in_string, out_string);
+        printf ("%s\n", out_string);
 
     #elif PROBLEM == 3
 
         int size = 0;
         scanf ("%d", &size);
 
-        //Input matrix
-        int **matrix = (int **)calloc (size, sizeof (*matrix));
+        int *out_array = (int*)calloc (2 * size - 1, sizeof (*out_array));
+
+        int **in_matrix = (int **)calloc (size, sizeof (*in_matrix));
         for (int i = 0; i < size; i++)
         {
             assert(0 <= i && i < size);
-            matrix[i] = (int *)calloc (size, sizeof (*matrix[i]));
+            in_matrix[i] = (int *)calloc (size, sizeof (*in_matrix[i]));
             for (int j = 0; j < size; j++)
             {
                 assert (0 <= j && j < size);
-                scanf ("%d", (matrix[i] + j));
+                scanf ("%d", (in_matrix[i] + j));
             }
         }
 
-        int *sums = (int*)calloc (2 * size - 1, sizeof (*sums));
-
-        sums = sum_num_on_diag(size, matrix);
+        sum_num_on_diag(size, in_matrix, out_array);
 
         for (int i = 0; i < size * 2 - 1; i++)
         {
-            printf("%d ", sums[i]);
+            printf("%d ", out_array[i]);
         }
 
-        free(sums);
-        sums = nullptr;
+        free(out_array);
+        out_array = nullptr;
         printf("\n");
 
     #elif PROBLEM == 4
 
-        char *source_str = (char *)calloc (MAX_STR, sizeof(* source_str));
-        gets (source_str);
-        printf ("%s\n", symbol_filter (source_str));
+        char *in_string = (char *)calloc (MAX_STR, sizeof(* in_string));
+        char *out_string = (char *)calloc (MAX_STR, sizeof(* out_string));
+        char *temp_string = (char *)calloc (MAX_STR, sizeof(* temp_string));
+        gets (in_string);
+        symbol_filter (in_string, temp_string, out_string);
+        printf ("%s\n", out_string);
        
     #elif PROBLEM == 5
 
         int sum = 0, count = 0;
 
+        int *out_array = (int *)calloc(MAX_VARIANTS, sizeof(*out_array));
+
         scanf("%d", &sum);
         printf("\n");
 
-        int *numbers;
-        numbers = four_sign_numbers(sum, &count);
+        four_sign_numbers(sum, &count, out_array);
 
         for (int i = 0; i < count; i++)
         {
-            printf("%d ", numbers[i]);
+            printf("%d ", out_array[i]);
         }
         printf("\n%d\n", count);
-        free(numbers);
-        numbers = nullptr;
+        free(out_array);
+        out_array = nullptr;
 
     #elif PROBLEM == 6
         int n = 0, m = 0;
         scanf ("%d  %d", &m , &n);
 
-        //Input matrix
-        int **matrix = (int **)calloc (m, sizeof (*matrix));
+        int **in_matrix = (int **)calloc (m, sizeof (*in_matrix));
+        int **out_matrix = (int **)calloc (m, sizeof (*out_matrix));
+
         for (int i = 0; i < m; i++)
         {
             assert(0 <= i && i < m);
-            matrix[i] = (int *)calloc (n, sizeof (*matrix[i]));
+            in_matrix[i] = (int *)calloc (n, sizeof (*in_matrix[i]));
+            out_matrix[i] = (int *)calloc (n, sizeof (*out_matrix[i]));
             for (int j = 0; j < n; j++)
             {
                 assert (0 <= j && j < n);
-                scanf ("%d", (matrix[i] + j));
+                scanf ("%d", (in_matrix[i] + j));
             }
         }
 
-        int **mirrored_matrix = mirror_matrix (m, n, matrix);
+        mirror_matrix (m, n, in_matrix, out_matrix);
 
-        //Output matrix
         for (int i = 0; i < m; i++)
         {
             assert (0 <= i && i < m);
             for (int j = 0; j < n; j++)
             {
                 assert (0 <= j && j < n);
-                printf ("%d ", mirrored_matrix[i][j]);
+                printf ("%d ", out_matrix[i][j]);
             }
             printf ("\n");
         }
 
-        free (mirrored_matrix);
-        free (matrix);
-        matrix = nullptr;
-        mirrored_matrix = nullptr;
+        free (in_matrix);
+        free (out_matrix);
+        in_matrix = nullptr;
+        out_matrix = nullptr;
+
+    #elif PROBLEM == 7
+
+        unsigned int n = 0, c = 0;
+        scanf ("%u", &n);
+
+        long unsigned int *in_array = (long unsigned int *)calloc (n, sizeof(*in_array));
+        long unsigned int *out_array = (long unsigned int *)calloc (n, sizeof(*out_array));
+
+        for (int i = 0; i < n; i++)
+        {
+            assert (0 <= i && i < n);
+            scanf ("%u", &in_array[i]);
+        }
+
+        prime_numbers (in_array, out_array, n, &c);
+
+        for (int i = 0; i < c; i++)
+        {
+            assert (0 <= i && i < n);
+            printf ("%u ", out_array[i]);
+        }
+
+        printf ("\n");
 
     #endif
 
-    system ("pause");
+    #ifdef _DEBUG
+        system ("pause");
+    #endif
+
     return 0;
+}
+
+result_t mirror_matrix(int m, int n, int **in_matrix, int **out_matrix) ///Problem 6
+{
+    if (in_matrix == nullptr || out_matrix == nullptr)
+    {
+        return NULL_PTR_PARAM;
+    }
+
+    for (int i = 0; i < m; i++)
+    {
+        assert (0 <= i && i < m);
+        for (int j = 0; j < n; j++)
+        {
+            assert (0 <= j && j < n);
+            assert (0 <= m - i - 1 && m - i - 1 < m);
+            assert (0 <= n - j - 1 && n - j - 1< n);
+            out_matrix[i][j] = in_matrix[m - i - 1][n - j - 1];
+        }
+    }
+    return OK;
+}
+
+result_t four_sign_numbers(int sum, int *count, int *out_array) ///Problem 5
+{
+    if (count == nullptr || out_array == nullptr)
+    {
+        return NULL_PTR_PARAM;
+    }
+    int p = 0;
+    for (int i = 1000; i < 10000; i++)
+    {
+        if ((i / 1000) + (i / 100) % 10 + (i / 10) % 10 + i % 10 == sum)
+        {
+            out_array[p] = i;
+            p++;
+        }
+    }
+
+    *count = p;
+    return OK;
+}
+
+result_t delete_whitespaces(char *in_string, char *out_string) ///Problem 2
+{
+    if (in_string == nullptr || out_string == nullptr)
+    {
+        return NULL_PTR_PARAM;
+    }
+
+    int length = strlen (in_string);
+    int pos = 0;
+    
+    for (int i = 0; i < length - 1; i++)
+    {
+        assert (0 <= i && i < length - 1);
+        if (!((in_string[i] == ' ' || in_string[i] == '\t') && (in_string[i + 1] == ' ' || in_string[i + 1] == '\t')))
+        {
+            assert((i + 1) < length);
+            out_string[pos] = in_string[i];
+            pos++;
+        }
+        if (in_string[length - 1] != ' ' && in_string[length - 1] != '\t') 
+        {
+            out_string[pos] = in_string[length - 1];
+        }
+    }
+
+    return OK;
+}
+
+result_t symbol_filter(char *in_string, char *temp_string, char *out_string) ///Problem 4
+{
+    if (in_string == nullptr || out_string == nullptr || temp_string == nullptr)
+    {
+        return NULL_PTR_PARAM;
+    }
+
+    delete_whitespaces(in_string, temp_string);
+    int length = strlen (temp_string);
+    int pos = 0;
+
+    for (int i = 0; i < length; i++)
+    {
+        assert(0 <= i && i < length);
+        if (!is_sign(temp_string[i]))
+        {
+            if (is_digit(temp_string[i]))
+            {
+                out_string[pos] = '#';
+            }
+            else
+            {
+                out_string[pos] = to_upper_case(temp_string[pos]);
+            }
+            pos++;
+        }
+    }
+
+    return OK;
+}
+
+result_t sum_num_on_diag(int size, int **in_matrix, int *out_array) ///Problem 3
+{
+    if (in_matrix == nullptr || out_array == nullptr)
+    {
+        return OK;
+    }
+
+    for (int i = 0; i < size; i++)
+    {
+        for (int j = 0; j < i + 1; j++)
+        {
+            assert (0 <= j && j < size);
+            assert (0 <= (size - i + j - 1) && (size - i + j - 1) < size);
+            out_array[i] += in_matrix[size - i + j - 1][j];
+        }
+    }
+
+    for (int i = 0; i < size; i++)
+    {
+        for (int j = 0; j < i + 1; j++)
+        {
+            assert (0 <= j && j < size);
+            assert (0 <= (size - i + j - 1) && (size - i + j - 1) < size);
+            out_array[size * 2 - 2 - i] += in_matrix[j][size - i + j - 1];
+        }
+    }
+
+    out_array[size - 1] /= 2; 
+
+    return OK;
+}
+
+result_t transpose(int size, int **in_matrix, int **out_matrix) ///Problem 1
+{
+    if (in_matrix == nullptr || out_matrix == nullptr)
+    {
+        return NULL_PTR_PARAM;
+    }
+
+    for (int i = 0; i < size; i++)
+    {
+        assert (0 <= i && i < size);
+        for (int j = 0; j < size; j++)
+        {
+            assert (0 <= j && j < size);
+            *(out_matrix[i] + j) = *(in_matrix[j] + i); 
+        }
+    }
+    return OK;
+} 
+
+result_t prime_numbers(unsigned long int *in_array, unsigned long int *out_array, unsigned int n, unsigned int *c) ///Problem 7
+{
+    if (in_array == nullptr || out_array == nullptr)
+    {
+        return NULL_PTR_PARAM;
+    }
+
+    int j = 0;
+
+    for (int i = 0; i < n; i++)
+    {
+        assert (0 <= i && i < n);
+        if (is_prime (in_array[i]) == 1)
+        {
+            out_array[j] = in_array[i];
+            j++;
+        }
+    }
+
+    *c = j;
+
+    return OK;
+}
+
+int is_prime(unsigned long int n)
+{
+    if (n == 0 || n == 1)
+    {
+        return -1;
+    }
+    else if (n % 2 == 0)
+    {
+        return 0;
+    }
+    else
+    {
+        for (int i = 3; i < floor (sqrt ((double)n) + 1); i += 2)
+        {
+            if (n % i == 0)
+            {
+                return 0;
+            }
+        }
+        return 1;
+    }
+}
+
+int is_digit(char c)
+{
+    if (48 <= c && c <= 57)
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+int is_sign(char c)
+{
+    if (c == '?'|| c == '!'|| c == '.'|| c == ',' || c == ';' || c == '-' || c == '(' || c == ')' || c == ':')
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+char to_upper_case(char c)
+{
+    if (65 <= c && c <= 90)
+    {
+        return c + 32;
+    }
+    else 
+    {
+        return c;
+    }
 }
