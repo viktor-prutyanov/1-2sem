@@ -102,7 +102,7 @@ int is_digit(char c);
 */
 int is_sign(char c);
 
-char to_upper_case(char c);
+char to_lower_case(char c);
 
 int main()
 {
@@ -393,7 +393,7 @@ result_t symbol_filter(char *in_string, char *temp_string, char *out_string) ///
             }
             else
             {
-                out_string[pos] = to_upper_case(temp_string[pos]);
+                out_string[pos] = to_lower_case(temp_string[pos]);
             }
             pos++;
         }
@@ -524,7 +524,7 @@ int is_sign(char c)
     }
 }
 
-char to_upper_case(char c)
+char to_lower_case(char c)
 {
     if (65 <= c && c <= 90)
     {
