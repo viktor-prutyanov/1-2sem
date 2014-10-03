@@ -14,9 +14,11 @@
 #include <string.h>
 #include <math.h>
 
-#define PROBLEM 4 //Number of problem, set to activate needed part of main.
+#define PROBLEM 0 //Number of problem, set to activate needed part of main.
 
 #define MAX_STR 100000
+#define MIN5 1000
+#define MAX5 10000
 #define MAX_VARIANTS 615
 
 typedef enum result_t { OK = 0, NULL_PTR_PARAM = -1 }; 
@@ -151,6 +153,11 @@ int main()
         delete_whitespaces (in_string, out_string);
         printf ("%s\n", out_string);
 
+        free(in_string);
+        in_string = nullptr;
+        free(out_string);
+        out_string = nullptr;
+
     #elif PROBLEM == 3
 
         int size = 0;
@@ -176,23 +183,33 @@ int main()
         {
             printf("%d ", out_array[i]);
         }
+        printf("\n");
 
         free(out_array);
         out_array = nullptr;
-        printf("\n");
+        free(in_matrix);
+        in_matrix = nullptr;
 
     #elif PROBLEM == 4
 
         char *in_string = (char *)calloc (MAX_STR, sizeof(* in_string));
         char *out_string = (char *)calloc (MAX_STR, sizeof(* out_string));
         char *temp_string = (char *)calloc (MAX_STR, sizeof(* temp_string));
+
         gets (in_string);
         symbol_filter (in_string, temp_string, out_string);
         printf ("%s\n", out_string);
+
+        free(in_string);
+        in_string = nullptr;
+        free(out_string);
+        out_array = nullptr;
+        free(temp_string);
+        temp_array = nullptr;
        
     #elif PROBLEM == 5
 
-        int sum = 0, count = 0;
+        int sum = 0, count =  0;
 
         int *out_array = (int *)calloc(MAX_VARIANTS, sizeof(*out_array));
 
@@ -206,6 +223,7 @@ int main()
             printf("%d ", out_array[i]);
         }
         printf("\n%d\n", count);
+
         free(out_array);
         out_array = nullptr;
 
@@ -270,6 +288,11 @@ int main()
 
         printf ("\n");
 
+        free(in_array);
+        in_array = nullptr;
+        free(out_array);
+        out_array = nullptr;
+
     #endif
 
     #ifdef _DEBUG
@@ -307,7 +330,7 @@ result_t four_sign_numbers(int sum, int *count, int *out_array) ///Problem 5
         return NULL_PTR_PARAM;
     }
     int p = 0;
-    for (int i = 1000; i < 10000; i++)
+    for (int i = MIN5; i < MAX5; i++)
     {
         if ((i / 1000) + (i / 100) % 10 + (i / 10) % 10 + i % 10 == sum)
         {
