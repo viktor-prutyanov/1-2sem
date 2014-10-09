@@ -26,11 +26,7 @@
 
     @return -1 if a < b, 0 if a = b, 1 if a > b  
 */
-int str_ptr_cmp(const void *a, const void *b)
-{
-    return strcmp (*(char **)a, *(char **)b);
-}
-
+int str_ptr_cmp(const void *a, const void *b);
 
 /**
     @brief Function that compares two strings presented by pointers in reversed order
@@ -40,6 +36,117 @@ int str_ptr_cmp(const void *a, const void *b)
 
     @return -1 if a < b, 0 if a = b, 1 if a > b  
 */
+int str_ptr_cmp_rev(const void *a, const void *b);
+
+/**
+    @brief Function that gets length of file
+
+    @param file is pointer to file
+
+    @return length of file in bytes 
+*/
+unsigned long int file_length(FILE *file);
+
+/**
+    @brief Function changes symols of newline to 0
+
+    @param str is string to change
+
+    @return len is length of string
+*/
+unsigned long int change_n_to_0(char *str, unsigned long int len);
+
+/**
+    @brief Function that outputs array of pointes to string to file
+
+    @param lines is number of lines
+    @param text is array of pointers
+    @param file is output file
+*/
+void str_array_to_file(unsigned long int lines, char **text, FILE *file);
+
+/**
+    @brief Function that writes string divided by null to array of pointers to string
+
+    @param text is array of pointers
+    @param buf is output file
+    @param len is length of buf
+    @param lines is number of lines
+
+    @return amount of lines that was writed
+*/
+long unsigned int str_to_array(char **text, char *buf, long unsigned int len, long unsigned int lines);
+
+/**
+    @brief Function that reads file to string divided by newlines
+    @warning length and len can be inequal, for example, if you use Windows file endings (CR LF).
+
+
+    @param filename is address of file
+    @param len is pointer where will be write amount of symbols readed to string
+    @param length is pointer where will be write amount of strings that contains in file
+
+    @return amount of lines that was writed
+*/
+char *read_file_to_string(char filename[], long unsigned int *length, long unsigned int *len);
+
+int main()
+{
+    #ifdef _DEBUG
+        LARGE_INTEGER time0 = { }, time1 = { };
+        QueryPerformanceCounter (&time0);
+    #endif
+
+    printf("In which order do you want to sort Eugene Onegin? Enter (1)direct or (0)reverse\n");
+    int order = -1;
+    scanf("%d", &order);
+    assert(order == 1 || order == 0);
+    printf ("Your choice is %s order.\n", order ? "direct" : "reverse");
+
+    long unsigned int read_length = 0;
+    long unsigned int length = 0;
+    char *buf = read_file_to_string("..\\eugene_onegin.txt", &length, &read_length);
+
+    printf ("File length is %u symbols.\nRead %u symbols.\n", length, read_length);
+
+    unsigned long int lines = change_n_to_0 (buf, read_length + 1); 
+
+    printf ("Read %u lines.\n", lines);
+
+    char **text = (char**)calloc (lines + 1, sizeof(*text));
+
+    printf ("Pointers created for %u strings.\n", str_to_array(text, buf, read_length, lines));
+
+    qsort (text, lines, sizeof(*text), order ? str_ptr_cmp : str_ptr_cmp_rev );
+
+    FILE *out_file = fopen ("..\\eugene_onegin_sorted.txt", "w");
+    assert (out_file != nullptr);
+    str_array_to_file (lines, text, out_file);
+    fclose (out_file);
+    out_file = nullptr;
+
+    free (buf);
+    buf = nullptr;
+    free (text);
+    text = nullptr;
+    
+    #ifdef _DEBUG
+        QueryPerformanceCounter (&time1);
+        printf ("QueryPerformanceCounter: %lld\n", time1.QuadPart - time0.QuadPart);
+    #endif
+
+    #ifdef _DEBUG
+        system("pause");
+    #endif
+  
+    return 0;
+}
+
+int str_ptr_cmp(const void *a, const void *b)
+{
+    return strcmp (*(char **)a, *(char **)b);
+}
+
 int str_ptr_cmp_rev(const void *a, const void *b)
 {
     char *s1 = *(char **)a; 
@@ -60,14 +167,10 @@ int str_ptr_cmp_rev(const void *a, const void *b)
 
     for (int i = 0; i < len; i++)
     {
-        if (s1[len1 - 1 - i] > s2[len2 - 1 -i])
-        {
-            return 1;
-        }
-        else if (s1[len1 - 1 - i] < s2[len2 - 1 -i])
-        {
-            return -1;
-        }
+        assert(0 <= len1 - 1 - i && len1 - 1 - i < len1);
+        assert(0 <= len2 - 1 - i && len2 - 1 - i < len2);
+        int diff = s1[len1 - 1 - i] - s2[len2 - 1 - i];
+        if (diff) return diff;
     }
 
     if (len1 > len2)
@@ -84,13 +187,6 @@ int str_ptr_cmp_rev(const void *a, const void *b)
     }
 }
 
-/**
-    @brief Function that gets length of file
-
-    @param file is pointer to file
-
-    @return length of file in bytes 
-*/
 unsigned long int file_length(FILE *file)
 {
     fseek (file, 0, SEEK_END);
@@ -99,13 +195,6 @@ unsigned long int file_length(FILE *file)
     return length;
 }
 
-/**
-    @brief Function changes symols of newline to 0
-
-    @param str is string to change
-
-    @return len is length of string
-*/
 unsigned long int change_n_to_0(char *str, unsigned long int len)
 {
     unsigned long int lines = 0;
@@ -118,17 +207,14 @@ unsigned long int change_n_to_0(char *str, unsigned long int len)
             str[i] = '\0';
             lines++;
         }
+        else if (!str[i])
+        {
+            lines++;
+        }
     }
     return lines;
 }
 
-/**
-    @brief Function that outputs array of pointes to string to file
-
-    @param lines is number of lines
-    @param text is array of pointers
-    @param file is output file
-*/
 void str_array_to_file(unsigned long int lines, char **text, FILE *file)
 {
     for (int i = 0; i < lines; i++)
@@ -141,41 +227,11 @@ void str_array_to_file(unsigned long int lines, char **text, FILE *file)
     }
 }
 
-int main()
+long unsigned int str_to_array(char **text, char *buf, long unsigned int len, long unsigned int lines)
 {
-    #ifdef _DEBUG
-        LARGE_INTEGER time0 = { }, time1 = { };
-        QueryPerformanceCounter(&time0);
-    #endif
-
-    FILE *in_file = fopen ("..\\eugene_onegin.txt", "r");
-
-    assert (in_file != nullptr);
-    unsigned long int length = file_length(in_file); //unsigned long int length = _filelength(_fileno(file)) + 1;
-    char *buf = (char *)calloc (length + 1, sizeof(char));
-    assert (buf != nullptr);
-    unsigned long int len = fread (buf, sizeof(char), length, in_file);
-    fclose (in_file);
-
-    printf("In which order do you want to sort Eugene Onegin? Enter 1(direct) or -1(reverse):\n");
-    int order = 0;
-    scanf("%d", &order);
-    assert(order == 1 || order == -1);
-    order == 1 ? printf("You choice is direct order.\n") : printf("You choice is reverse order.\n");
-
-    printf ("File length is %u symbols.\nReaded %u symbols.\n", length, len);
-    
-    buf[len] = '\n';
-
-    unsigned long int lines = change_n_to_0 (buf, len + 1); 
-
-    printf ("Readed %u lines.\n", lines);
-
-    char **text = (char**)calloc (lines + 1, sizeof(*text));
-
     text[0] = &(buf[0]);
 
-    unsigned long int pos = 1;
+    long unsigned int pos = 1;
 
     for (int i = 0; i < len; i++)
     {
@@ -188,29 +244,18 @@ int main()
             pos++;
         }
     }
+    return pos;
+}
 
-    printf ("Pointers created for %u strings.\n", pos);
-
-    order == 1 ? qsort (text, lines, sizeof(char *), str_ptr_cmp) : qsort (text, lines, sizeof(char *), str_ptr_cmp_rev); 
-
-    FILE *out_file = fopen ("..\\eugene_onegin_sorted.txt", "w");
-    str_array_to_file(lines, text, out_file);
-    fclose (out_file);
-    out_file = nullptr;
-
-    free (buf);
-    buf = nullptr;
-    free (text);
-    text = nullptr;
-    
-    #ifdef _DEBUG
-        QueryPerformanceCounter(&time1);
-        printf("%d\n", time1.QuadPart - time0.QuadPart);
-    #endif
-
-    #ifdef _DEBUG
-        system("pause");
-    #endif
-  
-    return 0;
+char *read_file_to_string(char filename[], long unsigned int *length, long unsigned int *len)
+{
+    if (filename == nullptr) return nullptr;
+    FILE *in_file = fopen (filename, "r");
+    if (in_file == nullptr) return nullptr;
+    *length = file_length(in_file); //unsigned long int length = _filelength(_fileno(file)) + 1;
+    char *buf = (char *)calloc (*length + 1, sizeof(char));
+    if (buf == nullptr) return nullptr;
+    *len = fread (buf, sizeof(char), *length, in_file);
+    fclose (in_file);
+    return buf;
 }
