@@ -84,6 +84,15 @@ char *read_file_to_string(char filename[], long unsigned int *length, long unsig
 */
 char **read_strings_from_file(char filename[], long unsigned int *length, long unsigned int *len, long unsigned int *lines, char *buf);
 
+/**
+    @brief Function that writes array of strings into file
+
+    @param filename is name of file
+    @param lines is amount of lines
+    @param text is array of string
+
+    @return 0 if everything is OK, 1 if something went wrong
+*/
 int write_strings_to_file(char filename[], long unsigned int lines, char **text);
 
 int main()
