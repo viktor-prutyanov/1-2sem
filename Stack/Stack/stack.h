@@ -34,10 +34,11 @@ bool Stack_dtor(Stack_t *stack);
     @brief Pops the value from stack
 
     @param stack is pointer to stack
+    @param[out] success is pointer where will be write true is success or false if not
 
     @return popped value
 */
-double Stack_pop(Stack_t *stack);
+double Stack_pop(Stack_t *stack, bool *success);
 
 /**
     @brief Pushes the value into stack

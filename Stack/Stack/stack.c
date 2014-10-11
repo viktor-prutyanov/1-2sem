@@ -16,7 +16,7 @@
 #include "stack.h"
 #include <assert.h>
 
-#define LOG
+//#define LOG
 
 typedef struct Stack_t
 {
@@ -75,16 +75,17 @@ bool Stack_push(Stack_t *stack, double value)
     return !Stack_ok (stack);
 }
 
-double Stack_pop(Stack_t *stack)
+double Stack_pop(Stack_t *stack, bool *success)
 {
     if (Stack_ok (stack) && !Stack_empty (stack))
     {
         (stack->count)--;
+        *success = true;
         return (stack->data)[stack->count];
     }
     else
     {
-        assert (!"Pop failed!");
+        *success = false;
         return 0;
     }
 }
@@ -107,19 +108,26 @@ bool Stack_empty(Stack_t *stack)
 
 bool Stack_dump(Stack_t *stack)
 {
+    #ifdef LOG
+        FILE *file = fopen("stack.log", "a");
+        #define OUT (file)
+    #else
+        #define OUT (stdout) 
+    #endif
+
     if (stack == nullptr)
     {
+        #ifdef LOG
+            fclose(file);
+            file = nullptr;
+        #endif
+
+        fprintf (OUT, "Dump failed.\n");
+
         return false;
     }
     else
     {
-        #ifdef LOG
-            FILE *file = fopen("stack.log", "a");
-            #define OUT (file)
-        #else
-            #define OUT (stdout) 
-        #endif
-
         if (Stack_ok(stack))
         {
             fprintf (OUT, "Stack [0x%x] is OK. \n\tcount = %d\n\tsize = %d\n\tdata [0x%x]:\n", stack, stack->count, stack->size, stack->data);
@@ -137,5 +145,7 @@ bool Stack_dump(Stack_t *stack)
             fclose(file);
             file = nullptr;
         #endif
+
+        return true;
     }
 }
