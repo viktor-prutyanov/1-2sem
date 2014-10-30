@@ -4,5 +4,6 @@
 *.suo
 *.vcxproj.filters
 *.vcxproj.user
+*.opensdf
 Debug
 Release

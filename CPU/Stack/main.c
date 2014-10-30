@@ -20,7 +20,7 @@
 #define SUB  2
 #define MUL  3
 #define DIV  4
-#define SIN  5 
+#define SIN  5
 #define COS  6
 #define SQRT 7
 
@@ -56,7 +56,8 @@ int main()
 
     printf ("Enter size of stack:\n");
     scanf ("%d", &size);
-    Stack_t *stack = Stack_ctor(size);
+    Stack_t* stack = (Stack_t*) calloc(1, sizeof (*stack));
+    Stack_ctor(size, stack);
     if (!Stack_ok(stack))
     {
         printf ("Stack construction failed.");
@@ -66,7 +67,7 @@ int main()
         return 0;
     }
 
-    printf ("Stack with size %d created\n", size);
+    printf ("Stack with size %d created.\n", size);
 
     while (true)
     {
@@ -74,7 +75,7 @@ int main()
         if (strcmp (command, "push") == 0)
         {
             scanf ("%lf", &arg);
-            if(Stack_push (stack, arg)) 
+            if(!Stack_push (stack, arg)) 
             {
                 printf ("Push failed. See the dump below.\n");
                 Stack_dump (stack);

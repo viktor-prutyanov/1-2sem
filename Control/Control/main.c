@@ -13,8 +13,9 @@
 #include <assert.h>
 #include <string.h>
 #include <math.h>
+#include <ctype.h>
 
-#define PROBLEM 0 //Number of problem, set to activate needed part of main.
+#define PROBLEM 1 //Number of problem, set to activate needed part of main.
 
 #define MAX_STR 100000
 #define MIN5 1000
@@ -89,20 +90,43 @@ result_t prime_numbers(unsigned long int *in_array, unsigned long int *out_array
 int is_prime(unsigned long int n); ///Auxillary function
 
 /**
-*   Function determines is char digit or not        
-*   @param c is char value
-*   @return 1 if digit 0 if not
+    @brief Prints src array without zero values
+
+    @param src is pointer to unsigned int source array
+    @param length is unsigned int length of array
+
+    @return 0 if everything is OK, 1 if not
 */
-int is_digit(char c);
+int array_print(unsigned int *src, unsigned int length);
 
 /**
-*   Function determines is char punctuation sign or not        
-*   @param c is char value
-*   @return 1 if sign 0 if not
-*/
-int is_sign(char c);
+    @brief Copies src array to dst array
 
-char to_lower_case(char c);
+    @param src is pointer to unsigned int source array
+    @param dst is pointer to unsigned int destination array
+    @param length is unsigned int length of array
+
+    @return 0 if everything is OK, 1 if not
+*/
+int array_copy(unsigned int *src, unsigned int *dst, unsigned int length);
+
+/**
+*   Function determines is it possible to weight
+*
+*   @param m is unsigned long number
+*
+*   @return integer value 1 if possible and 0 if impossible 
+*/
+int is_possible_to_weight(unsigned int m);
+
+/**
+   Function that determines is number square-free or not.
+
+   @param m unsigned int number
+
+   @return 1 if number is square-free, 0 if isn't
+*/
+int is_square_free(unsigned int m);
 
 int main()
 {
@@ -292,6 +316,79 @@ int main()
         in_array = nullptr;
         free(out_array);
         out_array = nullptr;
+    
+    #elif PROBLEM == 8
+        
+        unsigned int n = 0;
+
+        printf ("Enter maximum length:\n");
+        scanf ("%u", &n);
+        
+        unsigned int *array0 = (unsigned int *)calloc (n + 1, sizeof(unsigned int)); ///<Current row of function values
+        unsigned int *array1 = (unsigned int *)calloc (n + 1, sizeof(unsigned int)); ///<Previous row
+        unsigned int *array2 = (unsigned int *)calloc (n + 1, sizeof(unsigned int)); ///<Before the previous row
+
+        array2[0] = 1; 
+        array1[0] = 1;
+        array0[0] = 1;
+        array1[1] = 1;
+        
+        printf ("1\n1 1\n");
+
+        for (int i = 2; i <= n; i++)
+        {
+            for (int j = 1; j <= i; j++)
+            {
+                array0[j] = array1[j] + array2[j - 1];
+            }
+            array_copy (array1, array2, n + 1);
+            array_copy (array0, array1, n + 1);
+            array_print (array0, n + 1);
+            printf("\n");
+        }
+
+        free(array0);
+        free(array1);
+        free(array2);
+        array0 = nullptr;
+        array1 = nullptr;
+        array2 = nullptr;
+
+    #elif PROBLEM == 9
+
+        unsigned int n = 0;
+        printf ("Enter number you want to weight on scales with two bowls and 1, 4, 16 etc. weights:\n");
+        scanf ("%u", &n);
+        switch (is_possible_to_weight(n))
+        {
+            case 1:
+                printf ("YES\n");
+                break;
+            case 0:
+                printf ("NO\n");
+                break;
+            default:
+                printf ("If you see this message it means that something went wrong.");
+                break;
+        }
+
+    #elif PROBLEM == 10
+
+        unsigned int n = 0;
+        printf ("Enter positive number you want to determine does it contains square or not:\n");
+        scanf ("%u", &n);
+        switch (is_square_free (n))
+        {
+            case 1:
+                printf ("NO\n");
+                break;
+            case 0:
+                printf ("YES\n");
+                break;
+            default:
+                printf ("If you see this message it means that something went wrong.");
+                break;
+        }
 
     #endif
 
@@ -381,19 +478,19 @@ result_t symbol_filter(char *in_string, char *temp_string, char *out_string) ///
     delete_whitespaces(in_string, temp_string);
     int length = strlen (temp_string);
     int pos = 0;
-
+    
     for (int i = 0; i < length; i++)
     {
         assert(0 <= i && i < length);
-        if (!is_sign(temp_string[i]))
+        if (!isalpha(temp_string[i]))
         {
-            if (is_digit(temp_string[i]))
+            if (isdigit(temp_string[i]))
             {
                 out_string[pos] = '#';
             }
             else
             {
-                out_string[pos] = to_lower_case(temp_string[pos]);
+                out_string[pos] = tolower(temp_string[pos]);
             }
             pos++;
         }
@@ -500,38 +597,63 @@ int is_prime(unsigned long int n)
     }
 }
 
-int is_digit(char c)
+int array_copy(unsigned int *src, unsigned int *dst, unsigned int length)
 {
-    if (48 <= c && c <= 57)
+    if ((src == nullptr) || (dst == nullptr)) return 1;
+    for (unsigned int i = 0; i < length; i++)
+    {
+        assert (0 <= i && i < length);
+        dst[i] = src[i];
+    }
+    return 0;
+}
+
+int array_print(unsigned int *src, unsigned int length)
+{
+    if (src == nullptr) return 1;
+    for (unsigned int i = 0; i < length; i++)
+    {
+        assert (0 <= i && i < length);
+        if (src[i] != 0)
+        {
+            printf ("%u ", src[i]);
+        }
+    }
+    return 0;
+}
+
+int is_possible_to_weight(unsigned int m)
+{
+    if (m == 0)
     {
         return 1;
     }
-    else
+    else if ((m - 2) % 4 == 0)
     {
         return 0;
     }
+    else if (m % 4 == 0)
+    {
+        return is_possible_to_weight (m / 4);
+    }
+    else if ((m - 1) % 4 == 0)
+    {
+        return is_possible_to_weight ((m - 1) / 4);
+    }
+    else if ((m + 1) % 4 == 0)
+    {
+        return is_possible_to_weight ((m + 1) / 4);
+    }
 }
 
-int is_sign(char c)
+int is_square_free(unsigned int m)
 {
-    if (c == '?'|| c == '!'|| c == '.'|| c == ',' || c == ';' || c == '-' || c == '(' || c == ')' || c == ':')
+    for (int i = 2; i < m; i++)
     {
-        return 1;
+        if (m % (i*i) == 0)
+        {
+            return 0;
+        }    
     }
-    else
-    {
-        return 0;
-    }
-}
-
-char to_lower_case(char c)
-{
-    if (65 <= c && c <= 90)
-    {
-        return c + 32;
-    }
-    else 
-    {
-        return c;
-    }
+    return 1;
 }

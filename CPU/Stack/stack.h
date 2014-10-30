@@ -1,5 +1,5 @@
 /**
-*   Stack (LIFO) data structure realisation. 
+*   Stack (LIFO) data structure.
 *
 *   @file stack.h
 *
@@ -10,16 +10,38 @@
 *   @author Viktor Prutyanov mailto:vitteran@gmail.com 
 */
 
-typedef struct Stack_t Struct_t;
+#pragma once
+
+#ifdef _DEBUG
+    #define VERIFY(stack)                                                                                       \
+        if (!Stack_ok (stack))                                                                                  \
+        {                                                                                                       \
+            printf("Error in %s on %d in function %s line:", __FILE__, __LINE__, __FUNCTION__);                 \
+            Stack_dump(stack);                                                                                  \
+            abort();                                                                                            \
+        }
+#else
+    #define VERIFY(stack) ((void)0)
+#endif
+
+typedef double element_t;
+
+typedef struct Stack_t
+{
+    element_t *data;
+    size_t count;
+    size_t size;
+};
 
 /**
     @brief Constructor for Stack_t
 
     @param size is size of stack
+    @param[out] pointer to new stack
 
-    @return pointer to new stack, or NULL if construction was unsuccessful
+    @return true if everything is stack was created, false if not 
 */
-Stack_t *Stack_ctor(size_t size);
+bool Stack_ctor(size_t size, Stack_t *stack);
 
 /**
     @brief Destructor for Stack_t
@@ -87,3 +109,21 @@ bool Stack_full(Stack_t *stack);
     @return true if stack is empty, false if not
 */
 bool Stack_empty(Stack_t *stack);
+
+/**
+    @brief Gets size of stack
+
+    @param stack is pointer to stack
+
+    @return size of stack
+*/
+size_t Stack_get_size(Stack_t *stack);
+
+/**
+    @brief Gets count of elements in stack
+
+    @param stack is pointer to stack
+
+    @return count of stack
+*/
+size_t Stack_get_count(Stack_t *stack);
