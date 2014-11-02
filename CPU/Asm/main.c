@@ -1,5 +1,5 @@
 /**
-*   VP1 Assemler
+*   Assemler
 *
 *   @file stack.h
 *
@@ -21,9 +21,19 @@
     @param in_file is file with source codes
     @param[out] marks is array of addresses
 
-    @return amount of marks
+    @return amount of really written commands 
 */
 int mark_to_jump(FILE *in_file, double *marks);
+
+/**
+    @brief Writes command with number com_num to output
+
+    @param com_num number of command
+    @param out_file is output file
+
+    @return amount of marks
+*/
+size_t write_command(double com_num, FILE *out_file);
 
 int main(int argc, char *argv[])
 {
@@ -54,48 +64,79 @@ int main(int argc, char *argv[])
 
     printf("Input is %s, output is %s\n", argv[1], argv[2]);
 
-    bool next_is_command = true;
-    char command[5] = {0};
+    bool next_is_com = true;
+    char com[5] = {0};
     double val = 0;
     double marks[10] = {0};
     int count = 0;
-    double nop = 4;
+    int success = 0;
 
     mark_to_jump(in_file, marks);
 
     while (!feof (in_file))
     {
-        if (next_is_command)
+        if (next_is_com)
         {
-            fscanf (in_file, "%s", &command);
-            if ((command[0] == ':') && (count != (int)(marks[command[1] - 48])))
+            fscanf (in_file, "%s", &com);
+            if ((com[0] == ':') && (count != (int)(marks[com[1] - 48])))
             {
-                fwrite ((void *)(marks + (command[1] - 48)), sizeof (double), 1, out_file);
+                fwrite ((void *)(marks + (com[1] - 48)), sizeof (double), 1, out_file);
             }
-            else if (command[0] == ':')
+            else if (com[0] == ':')
             {
-                fwrite ((void *)(&nop), sizeof (double), 1, out_file);
+                write_command(4, out_file);
             }
-            #define DEF_CMD(cmd, num, code, name, args)                                                 \
-            else if (strcmp (command, name) == 0)                                                       \
-            {                                                                                           \
-                val = num;                                                                              \
-                fwrite ((void *)(&val), sizeof (double), 1, out_file);                                  \
-                if ((args == 1) && !((num >= 10) && (num <= 16)))  next_is_command = false;             \
+            #define DEF_CMD(cmd, num, code, name, args)                                       \
+            else if (strcmp (com, name) == 0)                                                 \
+            {                                                                                 \
+                val = num;                                                                    \
+                if (num == 1)                                                                 \
+                {                                                                             \
+                    count++;                                                                  \
+                    success = fscanf (in_file, "%lf", &val);                                  \
+                    if (success)                                                              \
+                    {                                                                         \
+                        write_command(1, out_file);                                           \
+                        write_command(val, out_file);                                         \
+                    }                                                                         \
+                    else                                                                      \
+                    {                                                                         \
+                        fscanf (in_file, "%s", &com);                                         \
+                        if (strcmp(com, "ax") == 0)                                           \
+                        {                                                                     \
+                            write_command(17, out_file);                                      \
+                        }                                                                     \
+                    }                                                                         \
+                }                                                                             \
+                else if (num == 2)                                                            \
+                {                                                                             \
+                    count++;                                                                  \
+                    fscanf (in_file, "%s", &com);                                             \
+                    if (strcmp(com, "ax") == 0)                                               \
+                    {                                                                         \
+                        write_command(18, out_file);                                          \
+                    }                                                                         \
+                }                                                                             \
+                else                                                                          \
+                {                                                                             \
+                    write_command(val, out_file);                                             \
+                    if ((args == 1) && !((num >= 10) && (num <= 16)))  next_is_com = false;   \
+                }                                                                             \
             }
             #include "..\include\commands.h"
             #undef DEF_CMD
             else
             {
-                printf("%s (#%d): invalid or unsupported command\n", command, count);
+                printf("%s (#%d): invalid or unsupported command\n", com, count);
                 break;
             }
         }
         else
         {
-            fscanf (in_file, "%lf", &val);
-            fwrite ((void *)(&val), sizeof (double), 1, out_file); 
-            next_is_command = true;
+            success = fscanf (in_file, "%lf", &val);
+            printf ("%lf", val);
+            write_command(val, out_file);
+            next_is_com = true;
         }
         count++;
     }
@@ -136,4 +177,9 @@ int mark_to_jump(FILE *in_file, double *marks)
 
     fseek(in_file, 0, SEEK_SET);
     return mark_count;
+}
+
+size_t write_command(double com_num, FILE *out_file)
+{
+    return fwrite ((void *)(&com_num), sizeof (double), 1, out_file);
 }

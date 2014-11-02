@@ -127,3 +127,13 @@ size_t Stack_get_size(Stack_t *stack);
     @return count of stack
 */
 size_t Stack_get_count(Stack_t *stack);
+
+/**
+    @brief Gets the top value from stack (not pop)
+
+    @param stack is pointer to stack
+    @param[out] success is pointer where will be write true is success or false if not
+
+    @return top value
+*/
+element_t Stack_peak(Stack_t *stack, bool *success);

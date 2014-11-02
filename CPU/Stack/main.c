@@ -90,6 +90,15 @@ int main()
                 Stack_dump (stack);
             }
         }
+        else if (strcmp (command, "peak") == 0)
+        {
+            printf ("%lf\n", Stack_peak (stack, &success));
+            if (!success)
+            {
+                printf ("Peak failed. See the dump below.\n");
+                Stack_dump (stack);
+            }
+        }
         else if (strcmp (command, "add") == 0)
         {
             SAFE_2ARG_OP(stack, ADD);

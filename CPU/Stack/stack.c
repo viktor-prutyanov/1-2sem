@@ -136,3 +136,20 @@ size_t Stack_get_count(Stack_t *stack)
 {
     return stack->count;
 }
+
+element_t Stack_peak(Stack_t *stack, bool *success)
+{
+    VERIFY (stack);
+    if (Stack_ok (stack) && !Stack_empty (stack))
+    {
+        *success = true;
+        VERIFY (stack);
+        return (stack->data)[(stack->count)-1];
+    }
+    else
+    {
+        *success = false;
+        VERIFY (stack);
+        return 0;
+    }
+}

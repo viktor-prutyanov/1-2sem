@@ -1,5 +1,5 @@
 /**
-*   Program for creation encyclopedia of russian XIX century life (A.S.Pushkin "Eugene Onegin")
+*   Disassmebler
 *
 *   @date 10.2014
 *
@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
                 }                                        \
                 else                                     \
                 {                                        \
-                fprintf (out_file, "%s\n", name);        \
+                    fprintf (out_file, "%s\n", name);    \
                 }                                        \
             }
             #include "..\include\commands.h"

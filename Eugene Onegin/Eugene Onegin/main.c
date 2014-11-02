@@ -204,6 +204,7 @@ int str_ptr_cmp_rev(const void *a, const void *b)
 
 unsigned long int file_length(FILE *file)
 {
+    if (file == nullptr) return 0;
     fseek (file, 0, SEEK_END);
     unsigned long int length = ftell (file);
     rewind (file);
@@ -212,7 +213,7 @@ unsigned long int file_length(FILE *file)
 
 int str_array_to_file(unsigned long int lines, char **text, FILE *file)
 {
-    if ((file == nullptr) || (text == nullptr)) return 1;
+    if ((file == nullptr) || (text == nullptr) || (file == nullptr)) return 1;
     for (int i = 0; i < lines; i++)
     {
         assert (0 <= i && i < lines);
@@ -242,6 +243,8 @@ char *read_file_to_string(char filename[], long unsigned int *length, long unsig
 
 char **read_strings_from_file(char filename[], long unsigned int *length, long unsigned int *read_length, long unsigned int *lines, char *buf)
 {
+    if ((filename == nullptr) || (length == nullptr) || (read_length == nullptr) || (lines == nullptr)) return nullptr;
+
     buf = read_file_to_string (filename, length, read_length);
 
     for (int i = 0; i < *read_length + 1; i++)
@@ -282,12 +285,13 @@ char **read_strings_from_file(char filename[], long unsigned int *length, long u
     }
     else
     {
-        return NULL;
+        return nullptr;
     }
 }
 
 int write_strings_to_file(char filename[], long unsigned int lines, char **text)
 {
+    if ((filename == nullptr) || (text == nullptr)) return 1;
     FILE *out_file = fopen (filename, "w");
     if (out_file == nullptr) return 1;
     if (str_array_to_file (lines, text, out_file)) return 1;
