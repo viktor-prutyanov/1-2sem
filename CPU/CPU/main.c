@@ -6,6 +6,7 @@
 #include "cpu.h"
 
 #define STACK_SIZE 64
+#define CALL_STACK_SIZE 64
 
 /**
     @brief Function that gets length of file
@@ -37,22 +38,38 @@ int main(int argc, char *argv[])
         return 0;
     }
 
-    size_t buffer_size = file_length (in_file) / sizeof(double);
+    char header[8];
+    size_t values_size = 0;
+    size_t commands_size = 0;
+
+    fread ((void *)(header), sizeof (char), 8, in_file);
+    fread ((void *)(&values_size), sizeof (size_t), 1, in_file);
+    fread ((void *)(&commands_size), sizeof (size_t), 1, in_file);
+
+    printf ("Input file is %s, size is %d bytes\n", argv[1], file_length(in_file));
+    printf ("Header is {%s %d %d}\n\n", header, values_size, commands_size);
 
     CPU_t *cpu = (CPU_t*)calloc (1, sizeof(*cpu));
-    CPU_ctor (cpu, buffer_size, STACK_SIZE);
 
-    CPU_load(cpu, in_file) ? printf ("Program %s with length %d loaded to CPU.\n", argv[1], buffer_size) : printf ("Error loading %s program.\n", argv[1]);
+    CPU_ctor (cpu, values_size, commands_size, STACK_SIZE, CALL_STACK_SIZE);
+
+    CPU_load (cpu, values_size, commands_size, in_file);
+
+    CPU_dump (cpu);
 
     fclose (in_file);
     in_file = nullptr;
+
+    printf ("------------------\n");
 
     while (!(cpu->is_end))
     {
         CPU_run_next(cpu);
     }
 
-    CPU_dtor(cpu);
+    CPU_dtor (cpu);
+    free (cpu);
+    cpu = nullptr;
 
     #ifdef _DEBUG
         system ("pause");
@@ -63,8 +80,10 @@ int main(int argc, char *argv[])
 
 unsigned long int file_length(FILE *file)
 {
+    if (file == nullptr) return 0;
+    unsigned long int begin = ftell (file);
     fseek (file, 0, SEEK_END);
     unsigned long int length = ftell (file);
-    rewind (file);
+    fseek (file, begin, 0);
     return length;
 }

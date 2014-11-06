@@ -14,26 +14,49 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
+#include <stdint.h>
+
+#define HEADER "VPVM102"
+
+#define label_length 8
+#define reg_length 2
+#define command_length 4
+#define NO_CMD INT16_MIN
+
+#define IS_JUMP(num) ((10 <= num) && (num <= 18) || (num == 21))
+
+typedef struct label_t
+{
+    char name[label_length + 1];
+    int16_t address;
+};
 
 /**
-    @brief Creates array of addresses that specified by marks
+    @brief Function that gets length of file
 
-    @param in_file is file with source codes
-    @param[out] marks is array of addresses
+    @param file is pointer to file
 
-    @return amount of really written commands 
+    @return length of file in bytes 
 */
-int mark_to_jump(FILE *in_file, double *marks);
+unsigned long int file_length(FILE *file);
 
-/**
-    @brief Writes command with number com_num to output
+size_t write_values_table(FILE *out_file, size_t values_count, double *values);
 
-    @param com_num number of command
-    @param out_file is output file
+size_t write_header(FILE *out_file, size_t values_count, size_t commands_count, char *header);
 
-    @return amount of marks
-*/
-size_t write_command(double com_num, FILE *out_file);
+bool first_pass(FILE *in_file, size_t *values_count, size_t *labels_count, size_t *commands_count);
+
+bool second_pass(FILE *in_file, size_t values_count, size_t labels_count, size_t commands_count, double *values, label_t *labels);
+
+size_t write_command(FILE *out_file, uint16_t command_number, int16_t arg1, int16_t arg2, int16_t arg3);
+
+bool third_pass(FILE *in_file, FILE *out_file, size_t values_count, size_t labels_count, size_t commands_count, double *values, label_t *labels);
+
+int16_t find_value(size_t values_count, double *values, double value);
+
+int16_t find_label(size_t labels_count, label_t *labels, char* label_name);
+
+bool read_reg(FILE *in_file, char *reg);
 
 int main(int argc, char *argv[])
 {
@@ -62,86 +85,48 @@ int main(int argc, char *argv[])
         return 0;
     }
 
-    printf("Input is %s, output is %s\n", argv[1], argv[2]);
+    printf ("Welcome to %s assmebler.\n", HEADER);
+    printf ("\nInput is %s, output is %s\n\n", argv[1], argv[2]);
 
-    bool next_is_com = true;
-    char com[5] = {0};
-    double val = 0;
-    double marks[10] = {0};
-    int count = 0;
-    int success = 0;
+    char *str;
+    char command[command_length] = {0};
+    double value = 0;
+    bool success = false;
+    char label[label_length] = {0};
+    char reg[reg_length] = {0};
+    size_t labels_count = 0;
+    size_t values_count = 0;
+    size_t commands_count = 0;
 
-    mark_to_jump(in_file, marks);
+    first_pass (in_file, &values_count, &labels_count, &commands_count);
 
-    while (!feof (in_file))
+    printf ("\nValues count: %d\n", values_count);
+    printf ("Labels count: %d\n", labels_count);
+    printf ("Commands count: %d\n", commands_count);
+
+    double *values = (double *) calloc(values_count, sizeof(*values));
+    label_t *labels = (label_t *) calloc(labels_count, sizeof(*labels));
+
+    second_pass(in_file, values_count,labels_count, commands_count, values, labels);
+
+    printf ("\nValues table:\n");
+    for (int i = 0; i < values_count; i++)
     {
-        if (next_is_com)
-        {
-            fscanf (in_file, "%s", &com);
-            if ((com[0] == ':') && (count != (int)(marks[com[1] - 48])))
-            {
-                fwrite ((void *)(marks + (com[1] - 48)), sizeof (double), 1, out_file);
-            }
-            else if (com[0] == ':')
-            {
-                write_command(4, out_file);
-            }
-            #define DEF_CMD(cmd, num, code, name, args)                                       \
-            else if (strcmp (com, name) == 0)                                                 \
-            {                                                                                 \
-                val = num;                                                                    \
-                if (num == 1)                                                                 \
-                {                                                                             \
-                    count++;                                                                  \
-                    success = fscanf (in_file, "%lf", &val);                                  \
-                    if (success)                                                              \
-                    {                                                                         \
-                        write_command(1, out_file);                                           \
-                        write_command(val, out_file);                                         \
-                    }                                                                         \
-                    else                                                                      \
-                    {                                                                         \
-                        fscanf (in_file, "%s", &com);                                         \
-                        if (strcmp(com, "ax") == 0)                                           \
-                        {                                                                     \
-                            write_command(17, out_file);                                      \
-                        }                                                                     \
-                    }                                                                         \
-                }                                                                             \
-                else if (num == 2)                                                            \
-                {                                                                             \
-                    count++;                                                                  \
-                    fscanf (in_file, "%s", &com);                                             \
-                    if (strcmp(com, "ax") == 0)                                               \
-                    {                                                                         \
-                        write_command(18, out_file);                                          \
-                    }                                                                         \
-                }                                                                             \
-                else                                                                          \
-                {                                                                             \
-                    write_command(val, out_file);                                             \
-                    if ((args == 1) && !((num >= 10) && (num <= 16)))  next_is_com = false;   \
-                }                                                                             \
-            }
-            #include "..\include\commands.h"
-            #undef DEF_CMD
-            else
-            {
-                printf("%s (#%d): invalid or unsupported command\n", com, count);
-                break;
-            }
-        }
-        else
-        {
-            success = fscanf (in_file, "%lf", &val);
-            printf ("%lf", val);
-            write_command(val, out_file);
-            next_is_com = true;
-        }
-        count++;
+        printf ("\t[%d] %lf\n", i, values[i]);
     }
 
-    
+    printf ("\nLabels table:\n");
+    for (int i = 0; i < labels_count; i++)
+    {
+        printf ("\t[%d] %s -> %d\n", i, labels[i].name, labels[i].address); 
+    }
+
+    write_header(out_file, values_count, commands_count, HEADER);
+    printf ("\nHeader {%s %d %d} is wrotten.\n\n", HEADER, values_count, commands_count);
+    write_values_table(out_file, values_count, values);
+    third_pass(in_file, out_file, values_count, labels_count, commands_count, values, labels);
+
+    printf ("\nSize of %s is %d bytes.\n", argv[2], file_length(out_file));
     fcloseall();
     in_file = nullptr;
     out_file = nullptr;
@@ -152,34 +137,399 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-
-int mark_to_jump(FILE *in_file, double *marks)
+bool first_pass(FILE *in_file, size_t *values_count, size_t *labels_count, size_t *commands_count)
 {
-    char val[5];
-    char prev_val_zero_symb = '0';
-    int mark_count = 0;
-    int count = 0;
+    if ((in_file == nullptr) || (values_count == nullptr) || (labels_count == nullptr) || (commands_count == nullptr)) return false;
 
-    while (!feof (in_file))
+    fseek(in_file, 0,  SEEK_SET);
+
+    bool success = false;
+    double value = 0;
+    char label[label_length + 1] = {0};
+    char reg[reg_length + 1] = {0};
+    char command[command_length + 1] = {0};
+
+    while(!feof (in_file))
     {
-        fscanf (in_file, "%s", &val);
-        if ((val[0] == ':') && (prev_val_zero_symb == 'j'))
+        success = fscanf (in_file, "%lf", &value);
+        if (success)
         {
-            mark_count++;
+            printf ("value   |  %lf\n", value);
+            (*values_count)++;
         }
-        else if ((val[0] == ':') && (prev_val_zero_symb != 'j'))
+        else
         {
-            marks[val[1] - 48] = count;
+            success = fscanf (in_file, ":%s", &label);
+            if (success)
+            {
+                printf ("lbl_to  |  %s\n", label);
+                (*labels_count)++;
+            }
+            else
+            {
+                success = fscanf (in_file, "_%s", &label);
+                if (success)
+                {
+                    printf ("lbl_from|  %s\n", label);
+                }
+                else
+                {
+                    success = read_reg (in_file, reg);
+                    if (success)
+                    {
+                        printf ("register|  %s\n", reg);
+                    }
+                    else
+                    {
+                        success = fscanf (in_file, "%s", &command);
+                        if (success)
+                        {
+                            printf ("command |  %s\n", command);
+                            (*commands_count)++;
+                        }
+                        else
+                        {
+                            printf ("Syntax error.\n");
+                            break;
+                            return false;
+                        }
+                    }
+                }
+            }
         }
-        prev_val_zero_symb = val[0];
-        count++;
     }
 
-    fseek(in_file, 0, SEEK_SET);
-    return mark_count;
+    fseek(in_file, 0,  SEEK_SET);
+    return true;
 }
 
-size_t write_command(double com_num, FILE *out_file)
+bool second_pass(FILE *in_file, size_t values_count, size_t labels_count, size_t commands_count, double *values, label_t *labels)
 {
-    return fwrite ((void *)(&com_num), sizeof (double), 1, out_file);
+    if ((in_file == nullptr) || (values == nullptr) || (labels == nullptr)) return false;
+
+    fseek(in_file, 0,  SEEK_SET);
+
+    bool success = false;
+    double value = 0;
+    size_t recorded_values_count = 0;
+    size_t recorded_labels_count = 0;
+    size_t recorded_commands_count = 0;
+    char label[label_length + 1] = {0};
+    char reg[reg_length + 1] = {0};
+    char command[command_length + 1] = {0};
+
+    while(!feof (in_file))
+    {
+        success = fscanf (in_file, "%lf", &(values[recorded_values_count]));
+        if (success)
+        {
+            recorded_values_count++;
+        }
+        else
+        {
+            success = fscanf (in_file, ":%s", &(labels[recorded_labels_count].name));
+            if (success)
+            {
+                labels[recorded_labels_count].address = recorded_commands_count;
+                recorded_labels_count++;
+            }
+            else
+            {
+                success = fscanf (in_file, "_%s", &label);
+                if (success)
+                {
+                    //printf ("lbl_from|  %s\n", label);
+                }
+                else
+                {
+                    success = read_reg (in_file, reg);
+                    if (success)
+                    {
+                        //printf ("register|  %s\n", reg);
+                    }
+                    else
+                    {
+                        success = fscanf (in_file, "%s", &command);
+                        if (success)
+                        {
+                            //printf ("command |  %s\n", command);
+                            recorded_commands_count++;
+                        }
+                        else
+                        {
+                            //printf ("Syntax error.\n");
+                            break;
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    fseek(in_file, 0,  SEEK_SET);
+    return ((recorded_labels_count == labels_count) && (recorded_values_count == values_count));
+}
+
+bool third_pass(FILE *in_file, FILE *out_file, size_t values_count, size_t labels_count, size_t commands_count, double *values, label_t *labels)
+{
+    if ((in_file == nullptr) || (values == nullptr) || (labels == nullptr)) return false;
+
+    fseek(in_file, 0,  SEEK_SET);
+
+    bool success = false;
+    double value = 0;
+    size_t recorded_values_count = 0;
+    size_t recorded_labels_count = 0;
+    size_t recorded_commands_count = 0;
+    char label[label_length + 1] = {0};
+    char reg[reg_length + 1] = {0};
+    char command[command_length + 1] = {0};
+    int16_t arg1 = NO_CMD, arg2 = NO_CMD, arg3 = NO_CMD;
+
+    while(!feof (in_file))
+    {
+        success = fscanf (in_file, "%lf", &value);
+        if (success)
+        {
+            printf ("v\n");
+        }
+        else
+        {
+            success = fscanf (in_file, ":%s", &label);
+            if (success)
+            {
+                ;
+            }
+            else
+            {
+                success = false;
+                if (success)
+                {
+                    ;
+                }
+                else
+                {
+                    success = read_reg (in_file, reg);
+                    if (success)
+                    {
+                        printf ("r\n");
+                    }
+                    else
+                    {
+                        success = fscanf (in_file, "%4s", &command);
+                        if (success)
+                        {    
+                            if (false)
+                            {
+
+                            }
+                            #define DEF_CMD(cmd, num, code, name, args)                                         \
+                            else if (strcmp (name, command) == 0)                                               \
+                            {                                                                                   \
+                                printf ("%5s (#%3d) ", name, num);                                              \
+                                switch (args)                                                                   \
+                                {                                                                               \
+                                    case 0:                                                                     \
+                                        write_command (out_file, num, NO_CMD, NO_CMD, NO_CMD);                  \
+                                        printf ("%5d\n", num);                                                  \
+                                        break;                                                                  \
+                                    case 1:                                                                     \
+                                        if (IS_JUMP(num))                                                       \
+                                        {                                                                       \
+                                            success = fscanf (in_file, " _%s", &label);                         \
+                                            arg1 = find_label (labels_count, labels, label);                    \
+                                        }                                                                       \
+                                        else                                                                    \
+                                        {                                                                       \
+                                            success = fscanf (in_file, "%lf", &value);                          \
+                                            if (success)                                                        \
+                                            {                                                                   \
+                                                arg1 = find_value (values_count, values, value);                \
+                                            }                                                                   \
+                                            else                                                                \
+                                            {                                                                   \
+                                                success = read_reg (in_file, reg);                              \
+                                                if (success)                                                    \
+                                                {                                                               \
+                                                    arg1 = -(reg[0] - 96);                                      \
+                                                }                                                               \
+                                                else                                                            \
+                                                {                                                               \
+                                                    return false;                                               \
+                                                }                                                               \
+                                            }                                                                   \
+                                        }                                                                       \
+                                        if (arg1 == NO_CMD) return false;                                       \
+                                        write_command (out_file, num, arg1, NO_CMD, NO_CMD);                    \
+                                        printf ("%5d %5d\n", num, arg1);                                        \
+                                        break;                                                                  \
+                                    case 2:                                                                     \
+                                        /*printf("!%d", args);*/                                                \
+                                        success = fscanf (in_file, "%lf", &value);                              \
+                                        if (success)                                                            \
+                                        {                                                                       \
+                                            arg1 = find_value (values_count, values, value);                    \
+                                            success = fscanf (in_file, "%lf", &value);                          \
+                                            if (success)                                                        \
+                                            {                                                                   \
+                                                arg2 = find_value (values_count, values, value);                \
+                                            }                                                                   \
+                                            else                                                                \
+                                            {                                                                   \
+                                                success = read_reg (in_file, reg);                              \
+                                                if (success)                                                    \
+                                                {                                                               \
+                                                    arg2 = -(reg[0] - 96);                                      \
+                                                }                                                               \
+                                                else                                                            \
+                                                {                                                               \
+                                                    return false;                                               \
+                                                }                                                               \
+                                            }                                                                   \
+                                        }                                                                       \
+                                        else                                                                    \
+                                        {                                                                       \
+                                            success = read_reg (in_file, reg);                                  \
+                                            if (success)                                                        \
+                                            {                                                                   \
+                                                arg1 = -(reg[0] - 96);                                          \
+                                                success = fscanf (in_file, "%lf", &value);                      \
+                                                if (success)                                                    \
+                                                {                                                               \
+                                                    arg2 = find_value (values_count, values, value);            \
+                                                }                                                               \
+                                                else                                                            \
+                                                {                                                               \
+                                                    success = read_reg (in_file, reg);                          \
+                                                    if (success)                                                \
+                                                    {                                                           \
+                                                        arg2 = -(reg[0] - 96);                                  \
+                                                    }                                                           \
+                                                    else                                                        \
+                                                    {                                                           \
+                                                        return false;                                           \
+                                                    }                                                           \
+                                                }                                                               \
+                                            }                                                                   \
+                                            else                                                                \
+                                            {                                                                   \
+                                                success = fscanf (in_file, "%lf", &value);                      \
+                                                if (success)                                                    \
+                                                {                                                               \
+                                                    arg2 = find_value (values_count, values, value);            \
+                                                }                                                               \
+                                                else                                                            \
+                                                {                                                               \
+                                                    success = read_reg (in_file, reg);                          \
+                                                    if (success)                                                \
+                                                    {                                                           \
+                                                        arg2 = -(reg[0] - 96);                                  \
+                                                    }                                                           \
+                                                    else                                                        \
+                                                    {                                                           \
+                                                        return false;                                           \
+                                                    }                                                           \
+                                                }                                                               \
+                                            }                                                                   \
+                                        }                                                                       \
+                                        if ((arg1 == NO_CMD) || (arg2 == NO_CMD)) return false;                 \
+                                        write_command (out_file, num, arg1, arg2, NO_CMD);                      \
+                                        printf ("%5d %5d %5d\n", num, arg1, arg2);                              \
+                                    default:                                                                    \
+                                        /*printf ("!%d", args);*/                                               \
+                                        break;                                                                  \
+                                }                                                                               \
+                            }                                                                                   
+                            #include "..\include\commands.h"
+                            #undef DEF_CMD
+                        }
+                        else
+                        {
+                            printf ("Invalid or unsupported command.\n");
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    fseek(in_file, 0,  SEEK_SET);
+    return true;
+}
+
+size_t write_header(FILE *out_file, size_t values_count, size_t commands_count, char *header)
+{
+    if ((out_file == nullptr) || (header == nullptr)) return -1;
+    return fwrite ((void *)header, sizeof (char), 8, out_file) + 
+        fwrite ((void *)(&values_count), sizeof(size_t), 1, out_file) +
+        fwrite ((void *)(&commands_count), sizeof(size_t), 1, out_file);
+}
+
+size_t write_values_table(FILE *out_file, size_t values_count, double *values)
+{
+    if ((out_file == nullptr) || (values == nullptr)) return -1;
+    return fwrite ((void *)values, sizeof(double), values_count, out_file);
+}
+
+size_t write_command(FILE *out_file, uint16_t command_number, int16_t arg1, int16_t arg2, int16_t arg3)
+{
+    if (out_file == nullptr) return -1;
+    return fwrite ((void *)(&command_number), sizeof (uint16_t), 1, out_file) + 
+        fwrite ((void *)(&arg1), sizeof (int16_t), 1, out_file) +
+        fwrite ((void *)(&arg2), sizeof (int16_t), 1, out_file) + 
+        fwrite ((void *)(&arg3), sizeof (int16_t), 1, out_file);
+}
+
+int16_t find_value(size_t values_count, double *values, double value)
+{
+    if (values == nullptr) return -1;
+    int16_t res = NO_CMD;
+    for (uint16_t i = 0; i < values_count; i++)                             
+    {                                                                  
+        if (values[i] == value)                                        
+        {                                                              
+            res = i;                                                  
+            break;                                                     
+        }                                                              
+    }
+    return res;
+}
+
+int16_t find_label(size_t labels_count, label_t *labels, char *label_name)
+{
+    if ((labels == nullptr) || (label_name == nullptr)) return -1;
+    int16_t res = NO_CMD;
+    for (int16_t i = 0; i < labels_count; i++)                             
+    {                                                                  
+        if (strcmp (labels[i].name, label_name) == 0)                                        
+        {                                                              
+            res = labels[i].address;                                                  
+            break;                                                     
+        }                                                              
+    }
+    return res;
+}
+
+unsigned long int file_length(FILE *file)
+{
+    fseek (file, 0, SEEK_END);
+    unsigned long int length = ftell (file);
+    fseek (file, 0, SEEK_SET);
+    return length;
+}
+
+bool read_reg(FILE *in_file, char *reg)
+{
+    bool success = false; 
+    success = fscanf (in_file, "%1[a-d]", &(reg[0]));
+    if (!success) return false;
+    success = fscanf (in_file, "%1[x]", &(reg[1]));
+    if (!success)
+    {
+        ungetc(reg[0], in_file);
+        return false;
+    }
+    return true;
 }

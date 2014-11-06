@@ -1,8 +1,7 @@
-push 2
-pop ax
+mov ax 2
 push 1000
 push 1
-:0
+:label0
 push ax
 mul
 pop ax
@@ -11,5 +10,5 @@ out
 push ax
 push 1000
 push ax
-jb :0
+jb _label0
 end
