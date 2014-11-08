@@ -1,6 +1,16 @@
-push 5
-push 3
+in
+call _frac
 dump
-dup
-dump
+out
 end
+:frac
+dup
+push 1
+je _l1
+dup
+push 1
+sub
+call _frac
+mul
+:l1
+ret

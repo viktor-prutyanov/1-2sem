@@ -6,12 +6,12 @@ DEF_CMD(POP,        2,  CPU_pop(cpu->stack, arg1),                              
 DEF_CMD(DUMP,       3,  CPU_dump(cpu),                                                      "dump",    0)
                                                                                  
 DEF_CMD(NOP,        4,  {},                                                                 "nop",     0)
-                                                                                 
+
 DEF_CMD(ADD,        5,  CPU_add(cpu->stack),                                                "add",     0)
 DEF_CMD(SUB,        6,  CPU_sub(cpu->stack),                                                "sub",     0)
 DEF_CMD(MUL,        7,  CPU_mul(cpu->stack),                                                "mul",     0)
 DEF_CMD(DIV,        8,  CPU_div(cpu->stack),                                                "div",     0)
-                                                                                 
+
 DEF_CMD(OUT,        9,  CPU_out(cpu),                                                       "out",     0)
 
 DEF_CMD(JMP,        10, CPU_jmp(cpu, jump_to),                                              "jmp",     1)
@@ -32,3 +32,5 @@ DEF_CMD(CALL,       21, CPU_call(cpu, jump_to),                                 
 DEF_CMD(RET,        22, CPU_ret(cpu),                                                       "ret",     0)
 
 DEF_CMD(DUP,        23, CPU_dup(cpu),                                                       "dup",     0)
+
+DEF_CMD(IN,         24, CPU_in(cpu),                                                        "in",      0)

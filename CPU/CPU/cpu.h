@@ -104,3 +104,5 @@ bool    CPU_call        (CPU_t *cpu,  int jump_to);
 bool    CPU_ret         (CPU_t *cpu);
 
 bool    CPU_dup         (CPU_t *cpu);
+
+bool    CPU_in          (CPU_t *cpu);

@@ -255,7 +255,7 @@ bool CPU_sub(Stack_t *stack)
         return false;
     }
 
-    return Stack_push (stack, arg1 - arg2);
+    return Stack_push (stack, arg2 - arg1);
 }
 
 bool CPU_div(Stack_t *stack)
@@ -492,14 +492,14 @@ bool CPU_jnz(CPU_t *cpu, int jump_to)
     }
 }
 
-bool CPU_mov (double *dest, double src)
+bool CPU_mov(double *dest, double src)
 {
     if (dest == nullptr) return false;
     *dest = src;
     return true;
 }
 
-bool CPU_swap (CPU_t *cpu)
+bool CPU_swap(CPU_t *cpu)
 {
     double swap1 = 0;
     double swap2 = 0;
@@ -546,5 +546,14 @@ bool CPU_dup(CPU_t *cpu)
     val = Stack_peak (cpu->stack, &success);
     if (!success) return false; 
 
+    return Stack_push (cpu->stack, val);
+}
+
+bool CPU_in(CPU_t *cpu)
+{
+    if (cpu == nullptr) return false;
+    double val = 0;
+    printf ("<-");
+    scanf ("%lf", &val);
     return Stack_push (cpu->stack, val);
 }
