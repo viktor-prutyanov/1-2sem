@@ -40,7 +40,7 @@ bool List_ctor(List_t *list, int num)
     {
         cur_node = (ListNode_t *)calloc (1, sizeof(ListNode_t));
         if (cur_node == nullptr) return false;
-        cur_node->data = i;
+        cur_node->data = 0;
         cur_node->prev = prev_node;
         prev_node->next = cur_node;
         prev_node = cur_node;
@@ -88,7 +88,7 @@ bool List_dump(List_t *list)
         ListNode_t *cur_node = list->head;
         for (int i = 0; i < list->num; i++)
         {
-            printf ("\t[0x%p] %6d prev:0x%p next:0x%p\n", cur_node, cur_node->data, cur_node->prev, cur_node->next);
+            printf ("\t[0x%p] %s prev:0x%p next:0x%p\n", cur_node, *(cur_node->data), cur_node->prev, cur_node->next);
             cur_node = cur_node->next;
         }
         return true;
@@ -136,7 +136,7 @@ bool List_dtor(List_t *list)
     for (int i = 0; i < list->num; i++)
     {
         next_node = cur_node->next;
-        cur_node->data = -1;
+        cur_node->data = nullptr;
         cur_node->next = nullptr;
         cur_node->prev = nullptr;
         free (cur_node);

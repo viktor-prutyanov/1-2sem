@@ -14,6 +14,8 @@
 
 int main()
 {
+    printf ("List using example.\n");
+
     int num = 0;
     scanf ("%d", &num);
 
@@ -27,28 +29,28 @@ int main()
     List_remove (list, list->head);
     List_dump (list);
 
-    ListNode_t *node_to_insert1 = (ListNode_t *)calloc (1, sizeof(ListNode_t));
-    node_to_insert1->data = 5000;
-    printf ("\nInsert (after) to middle:\n");
-    List_insert_after (list, node_to_insert1, list->head->next);
-    List_dump (list);
-
     ListNode_t *node_to_insert2 = (ListNode_t *)calloc (1, sizeof(ListNode_t));
     node_to_insert2->data = 15000;
     printf ("\nInsert (after) to end:\n");
     List_insert_after (list, node_to_insert2, list->tail);
     List_dump (list);
 
-    ListNode_t *node_to_insert3 = (ListNode_t *)calloc (1, sizeof(ListNode_t));
-    node_to_insert3->data = 20000;
-    printf ("\nInsert (before) to middle:\n");
-    List_insert_before (list, node_to_insert3, list->head->next->next);
-    List_dump (list);
-
     ListNode_t *node_to_insert4 = (ListNode_t *)calloc (1, sizeof(ListNode_t));
     node_to_insert4->data = 25000;
     printf ("\nInsert (before) to beginning:\n");
     List_insert_before (list, node_to_insert4, list->head);
+    List_dump (list);
+
+    ListNode_t *node_to_insert1 = (ListNode_t *)calloc (1, sizeof(ListNode_t));
+    node_to_insert1->data = 5000;
+    printf ("\nInsert (after) to middle:\n");
+    List_insert_after (list, node_to_insert1, list->head->next);
+    List_dump (list);
+
+    ListNode_t *node_to_insert3 = (ListNode_t *)calloc (1, sizeof(ListNode_t));
+    node_to_insert3->data = 20000;
+    printf ("\nInsert (before) to middle:\n");
+    List_insert_before (list, node_to_insert3, list->head->next->next);
     List_dump (list);
 
     printf ("\nRemove tail:\n");
