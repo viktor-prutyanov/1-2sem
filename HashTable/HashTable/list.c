@@ -12,8 +12,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <string.h>
 
-bool List_ctor(List_t *list, int num)
+bool List_ctor(List_t *list, long long int num)
 {
     if (list == nullptr || num < 0) return false;
 
@@ -88,7 +89,7 @@ bool List_dump(List_t *list)
         ListNode_t *cur_node = list->head;
         for (int i = 0; i < list->num; i++)
         {
-            printf ("\t[0x%p] %s prev:0x%p next:0x%p\n", cur_node, *(cur_node->data), cur_node->prev, cur_node->next);
+            printf ("\t[0x%p] |%s| (%d) prev:0x%p next:0x%p\n", cur_node, *(cur_node->data), strlen(*(cur_node->data)), cur_node->prev, cur_node->next);
             cur_node = cur_node->next;
         }
         return true;

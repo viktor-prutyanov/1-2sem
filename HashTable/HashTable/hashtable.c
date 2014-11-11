@@ -13,7 +13,7 @@
 #include <stdlib.h>
 #include <assert.h>
 
-bool HashTable_ctor(HashTable_t *hashTable, int (*HashFunc)(HashTableItem_t item))
+bool HashTable_ctor(HashTable_t *hashTable, unsigned int (*HashFunc)(HashTableItem_t item))
 {
     if (hashTable == nullptr) return false;
     for (int i = 0; i < PRIME_SIZE; i++)
@@ -71,7 +71,7 @@ bool HashTable_add(HashTable_t *hashTable, HashTableItem_t item)
 
     ListNode_t *item_node = (ListNode_t *)calloc (1, sizeof(ListNode_t));
     item_node->data = item;
-    int index = hashTable->HashFunc (item) % PRIME_SIZE;
+    int index = (hashTable->HashFunc (item)) % PRIME_SIZE;
 
     return List_insert_after (hashTable->lists[index], item_node, hashTable->lists[index]->tail); 
 }

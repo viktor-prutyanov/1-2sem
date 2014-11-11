@@ -9,17 +9,17 @@
 */
 
 #include "list.h"
-#define PRIME_SIZE 1009
+#define PRIME_SIZE 101 //1009 32749
 
 typedef char **HashTableItem_t;
 
 typedef struct HashTable_t
 {
     (List_t *) lists[PRIME_SIZE];
-    int (*HashFunc)(HashTableItem_t item);
+    unsigned int (*HashFunc)(HashTableItem_t item);
 };
 
-bool HashTable_ctor(HashTable_t *hashTable, int (*HashFunc)(HashTableItem_t item));
+bool HashTable_ctor(HashTable_t *hashTable, unsigned int (*HashFunc)(HashTableItem_t item));
 
 bool HashTable_dtor(HashTable_t *hashTable);
 

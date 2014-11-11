@@ -19,7 +19,7 @@ typedef struct ListNode_t
 
 typedef struct List_t
 {
-    int num;
+    long long int num;
     ListNode_t *head;
     ListNode_t *tail;
 };
@@ -32,7 +32,7 @@ typedef struct List_t
 
     @return true if construction successful, else returns false
 */
-bool List_ctor(List_t *list, int num);
+bool List_ctor(List_t *list, long long int num);
 
 /**
     @brief List verification
