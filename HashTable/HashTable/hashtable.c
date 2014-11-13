@@ -18,8 +18,22 @@ bool HashTable_ctor(HashTable_t *hashTable, unsigned int (*HashFunc)(HashTableIt
     if (hashTable == nullptr) return false;
     for (int i = 0; i < PRIME_SIZE; i++)
     {
-        (hashTable->lists)[i] = (List_t *)calloc (1, sizeof(List_t));
-        List_ctor(hashTable->lists[i], 0);
+        if (((hashTable->lists)[i] = (List_t *)calloc (1, sizeof(List_t))) == nullptr)
+        {
+            for (int j = 0; j < i; j++)
+            {
+                free ((hashTable->lists)[j]);
+            }
+            return false;
+        }
+        if (!List_ctor(hashTable->lists[i], 0))
+        {
+            for (int j = 0; j < i; j++)
+            {
+                free ((hashTable->lists)[j]);
+            }
+            return false;
+        }
     }
     hashTable->HashFunc = HashFunc;
     return true;

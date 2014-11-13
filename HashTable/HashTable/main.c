@@ -50,6 +50,12 @@ int main()
     
     FILE *in_file = fopen ("..\\12.txt", "r");
 
+    if (in_file == nullptr)
+    {
+        printf ("Error openening file.\n");
+        return 0;
+    }
+
     FILE *out_file1 = fopen ("..\\csv\\1.csv", "w");
     FILE *out_file2 = fopen ("..\\csv\\2.csv", "w");
     FILE *out_file3 = fopen ("..\\csv\\3.csv", "w");
@@ -57,7 +63,7 @@ int main()
     FILE *out_file5 = fopen ("..\\csv\\5.csv", "w");
     FILE *out_file6 = fopen ("..\\csv\\6.csv", "w");
 
-    if (in_file == nullptr || out_file1 == nullptr || out_file2 == nullptr || out_file3 == nullptr || out_file4 == nullptr || out_file5 == nullptr || out_file6 == nullptr)
+    if (out_file1 == nullptr || out_file2 == nullptr || out_file3 == nullptr || out_file4 == nullptr || out_file5 == nullptr || out_file6 == nullptr)
     {
         printf ("Error openening/creating file.\n");
         return 0;
