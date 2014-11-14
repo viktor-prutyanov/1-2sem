@@ -24,7 +24,7 @@ typedef struct test_params_t
     long long int words_amount; 
     unsigned int (*HashFunc)(HashTableItem_t item); 
     char **words;
-    bool thread_flag;
+    bool volatile thread_flag;
     unsigned int thread_number;
 };
 
@@ -116,6 +116,7 @@ int main()
     }
     fcloseall();
 
+    system ("pause");
     #ifdef _DEBUG
         system ("pause");
     #endif
@@ -249,13 +250,17 @@ bool hashtable_nums_to_csv(HashTable_t *hashTable, FILE *out_file)
 
 void run_test(void *params)
 {
-    printf ("Thread #%d started.\n", ((test_params_t *)params)->thread_number);
+    printf ("#%d thread started.\n", ((test_params_t *)params)->thread_number);
     HashTable_t *hashTable = (HashTable_t *)calloc (1, sizeof(HashTable_t)); 
     HashTable_ctor (hashTable, ((test_params_t *)params)->HashFunc);
 
     for (int i = 0; i < ((test_params_t *)params)->words_amount; i++)
     {
-        HashTable_add (hashTable, &(((test_params_t *)params)->words[i]));
+        //printf ("%d\n", HashTable_search (hashTable, &(((test_params_t *)params)->words[i]), strcmp));
+        if (HashTable_search (hashTable, &(((test_params_t *)params)->words[i]), strcmp) < 0)
+        {
+            HashTable_add (hashTable, &(((test_params_t *)params)->words[i]));
+        }
     }
 
     hashtable_nums_to_csv (hashTable, ((test_params_t *)params)->out_file);

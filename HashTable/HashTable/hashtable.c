@@ -89,3 +89,24 @@ bool HashTable_add(HashTable_t *hashTable, HashTableItem_t item)
 
     return List_insert_after (hashTable->lists[index], item_node, hashTable->lists[index]->tail); 
 }
+
+int HashTable_search(HashTable_t *hashTable, HashTableItem_t item, int (*compare )(const char *, const char *))
+{
+    assert (HashTable_ok (hashTable));
+    if (hashTable == nullptr) return false;
+
+    int index = (hashTable->HashFunc (item)) % PRIME_SIZE;
+    long long int num = hashTable->lists[index]->num;
+    ListNode_t *cur_node = hashTable->lists[index]->head;
+
+    for (int i = 0; i < num; i++)
+    {
+        if (compare (*item, *(cur_node->data)) == 0) 
+        {
+            return index;
+        }
+        cur_node = cur_node->next;
+    }
+
+    return -1;
+}
