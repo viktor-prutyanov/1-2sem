@@ -33,6 +33,4 @@ bool TreeNode_delete(TreeNode_t *node);
 bool Tree_print(Tree_t *tree, FILE *file);
 TreeNode_t *TreeNode_read(FILE *file);
 bool Tree_read(Tree_t *tree, FILE *file);
-bool TreeNode_print_phrases(TreeNode_t *node, FILE *file, char **phrases);
-bool Tree_print_phrases(Tree_t *tree, FILE *file, char **phrases);
 int TreeNode_is_leaf(TreeNode_t *node);

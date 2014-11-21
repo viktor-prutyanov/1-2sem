@@ -64,16 +64,6 @@ bool TreeNode_add(Tree_t *tree, TreeNode_t *new_left_node, TreeNode_t *new_right
     return true;
 }
 
-bool TreeNode_print_phrases(TreeNode_t *node, FILE *file, char **phrases)
-{
-    if (node == nullptr || file == nullptr) return false;
-    fprintf (file, "(%s" , phrases[node->data]);
-    if (node->left != nullptr) TreeNode_print_phrases (node->left, file, phrases);
-    if (node->right != nullptr) TreeNode_print_phrases (node->right, file, phrases);
-    fprintf (file, ")");
-    return true;
-}
-
 bool TreeNode_print(TreeNode_t *node, FILE *file)
 {
     if (node == nullptr || file == nullptr) return false;
@@ -115,12 +105,6 @@ bool Tree_print(Tree_t *tree, FILE *file)
 {
     if (tree == nullptr || file == nullptr) return false;
     return TreeNode_print (tree->root, file);
-}
-
-bool Tree_print_phrases(Tree_t *tree, FILE *file, char **phrases)
-{
-    if (tree == nullptr || file == nullptr) return false;
-    return TreeNode_print_phrases (tree->root, file, phrases);
 }
 
 TreeNode_t *TreeNode_read(FILE *file)
