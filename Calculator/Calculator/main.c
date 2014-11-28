@@ -12,11 +12,14 @@
 #include <stdlib.h>
 #include "calc.h"
 
+#define MAX_EXPR_SIZE 256
+
 int main()
 {
-    char str[256];
-    scanf ("%s", &str);
-    printf ("%d\n", GetG0(str));
+    char expr[MAX_EXPR_SIZE];
+    printf ("Enter expression you want to calculate, you can use +-/*^()\n");
+    scanf ("%s", &expr);
+    printf ("%d\n", GetG0(expr));
 
     #ifdef _DEBUG
         system ("pause");
