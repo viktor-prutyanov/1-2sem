@@ -9,7 +9,7 @@
 */
 
 #include "list.h"
-#define PRIME_SIZE 32749 //1009 32749
+#define PRIME_SIZE 1009 //32749
 
 typedef char **HashTableItem_t;
 
@@ -61,9 +61,18 @@ bool HashTable_ok(HashTable_t *hashTable);
 
     @param hashTable is HashTable_t table to addition.
     @param item is HashTableItem_t item to add.
-
+    
     @return true if addition successful, else returns false
 */
 bool HashTable_add(HashTable_t *hashTable, HashTableItem_t item);
 
+/**
+    @brief Search of item
+
+    @param hashTable is table for search
+    @param item is item to search
+    @param comapare is function of comparsion of items
+
+    @return index
+*/
 int HashTable_search(HashTable_t *hashTable, HashTableItem_t item, int (*compare )(const char *, const char *));
