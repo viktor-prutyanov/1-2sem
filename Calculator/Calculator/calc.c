@@ -12,7 +12,7 @@
 
 char *_cur_sym;
 
-int GetN() //N ::= [0-9]+0
+int GetN() //N ::= [0-9]+
 {
     int val = 0;
     while ('0' <= *_cur_sym && *_cur_sym <= '9')
@@ -23,7 +23,7 @@ int GetN() //N ::= [0-9]+0
     return val;
 }
 
-int GetX()
+int GetX() //X ::= P{"^"P}*
 {
     int val = GetP();
     while (*_cur_sym == '^')
@@ -65,7 +65,7 @@ int GetE() //E ::= T{"+-"T}*
     return val;
 }
 
-int GetT() //T ::= P{"*/"P}*
+int GetT() //T ::= X{"*/"X}*
 {
     int val = GetX();
     while (*_cur_sym == '*')
