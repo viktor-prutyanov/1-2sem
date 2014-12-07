@@ -1,0 +1,51 @@
+\documentclass[12pt]{article}
+\usepackage{ucs}
+\usepackage[utf8x]{inputenc}
+\usepackage[russian]{babel}
+\title{\LaTeX}
+\date{}
+\author{}
+\begin{document}
+	\begin{center}
+		\Large\textbf{Taking the derivative of a function}
+	\end{center}
+	Let $f(x) = $
+	\begin{math}
+		(\exp{(x+1)})+(\tan{((2*x)+1)})\\
+	\end{math}
+	\newline
+	\newline
+	Next, we will take the derivative $f^{'}_x(x)$:\newline
+	\newline
+	Step-by-step solution:\newline
+	\begin{math}
+		(f+g)^{'} = f^{'} + g^{'} : \tan^{'}{x} = 1/\cos^{2}{x} : (f+g)^{'} = f^{'} + g^{'} : (f*g)^{'} = f^{'}g + g^{'}f : \Rightarrow ((0*x)+(1*2))\\
+\Rightarrow (((0*x)+(1*2))+0)\\
+\Rightarrow ((1/((\cos{((2*x)+1)})^2))*(((0*x)+(1*2))+0))\\
+\exp{x})^{'} = \exp{x} : (f+g)^{'} = f^{'} + g^{'} : \Rightarrow (1+0)\\
+\Rightarrow ((\exp{(x+1)})*(1+0))\\
+\Rightarrow (((\exp{(x+1)})*(1+0))+((1/((\cos{((2*x)+1)})^2))*(((0*x)+(1*2))+0)))\\
+	\end{math}
+	\newline
+	The derivative is:\newline
+	\begin{math}
+		((\exp{(x+1)})*(1+0))+((1/((\cos{((2*x)+1)})^2))*(((0*x)+(1*2))+0))\\
+	\end{math}
+	\newline
+	But you can see many unnecessary actions.
+	\newline
+	Let us make some simplifications:\newline
+	\begin{math}
+		((\exp{(x+1)})*1)+((1/((\cos{((2*x)+1)})^2))*(((0*x)+(1*2))+0))\\
+		((\exp{(x+1)})*1)+((1/((\cos{((2*x)+1)})^2))*(((0*x)+2)+0))\\
+		(\exp{(x+1)})+((1/((\cos{((2*x)+1)})^2))*(((0*x)+2)+0))\\
+		(\exp{(x+1)})+((1/((\cos{((2*x)+1)})^2))*((0*x)+2))\\
+		(\exp{(x+1)})+((1/((\cos{((2*x)+1)})^2))*(0+2))\\
+		(\exp{(x+1)})+((1/((\cos{((2*x)+1)})^2))*2)\\
+		(\exp{(x+1)})+((1/((\cos{((2*x)+1)})^2))*2)\\
+	\end{math}
+	\newline
+	In this way:\newline
+		\framebox{$f^{'}_x(x) = (\exp{(x+1)})+((1/((\cos{((2*x)+1)})^2))*2)$}\\	\newline
+	Further simplifications reader can hold their own.\newline
+\end{document}

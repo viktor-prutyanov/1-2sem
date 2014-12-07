@@ -18,4 +18,7 @@ int GetX(TreeNode_t **node);
 int GetP(TreeNode_t **node);
 int GetN(TreeNode_t **node);
 
-unsigned int pow(unsigned int base, unsigned int power);
+TreeNode_t *Diff(Tree_t *tree, TreeNode_t *node, char var, FILE *out_file);
+bool Fold_consts(TreeNode_t *node);
+bool Delete_dead_nodes(TreeNode_t *node);
+bool Optimize(Tree_t *tree, FILE *out_file);

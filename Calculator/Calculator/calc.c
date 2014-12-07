@@ -9,82 +9,194 @@
 */
 
 #include "calc.h"
+#include <stdio.h>
+#include "string.h"
 
-char *_cur_sym;
+#define CHECK_ERROR if (_err) { return 0; }
+#define   SET_ERROR _err = true
+#define RESET_ERROR _err = false
 
-int GetN() //N ::= [0-9]+
+char   *_cur_sym = nullptr;
+char *_start_sym = nullptr;
+bool _err = false;
+
+int GetN(TreeNode_t **node)
 {
+    CHECK_ERROR;
+    char *n_start_sym = _cur_sym;
     int val = 0;
-    while ('0' <= *_cur_sym && *_cur_sym <= '9')
+    while (true)
     {
-        val = val * 10 + *_cur_sym++ - '0';
-
+        if ('0' <= *_cur_sym && *_cur_sym <= '9')
+        {
+            val = val * 10 + *_cur_sym++ - '0';
+        }
+        else if (*_cur_sym == '(' || *_cur_sym == ')' || *_cur_sym == '+' || *_cur_sym == '-' || *_cur_sym == '/' || *_cur_sym == '*' || *_cur_sym == '^' || *_cur_sym == 0)
+        {
+            break;
+        }
+        else
+        {
+            printf ("Syntax error: unknown symbol \"%c\" (code = %d). (Position = %d)\n", *_cur_sym, *_cur_sym, _cur_sym - _start_sym);
+            SET_ERROR;
+            return 0;
+        }
     }
+    if (_cur_sym - n_start_sym == 0)
+    {
+        printf ("Syntax error: number expected, nothing found. (Position = %d)\n", _cur_sym - _start_sym);
+        SET_ERROR;
+        return 0;
+    }
+    TreeData_t elem = {val, NUM};
+    *node = TreeNode_new (elem, nullptr, nullptr);
     return val;
 }
 
-int GetX() //X ::= P{"^"P}*
+int GetX(TreeNode_t **node)
 {
-    int val = GetP();
-    while (*_cur_sym == '^')
-    {
-        _cur_sym++;
-        val = pow(val, GetP());
-    }
-    return val;
-}
+    CHECK_ERROR;
 
-int GetP() //P ::= "("E")"|N
-{
-    if (*_cur_sym == '(')
+    TreeNode_t *node1 = nullptr;
+    TreeNode_t *node2 = nullptr;
+
+    int val1 = GetP (&node1);
+    CHECK_ERROR;
+    int val2 = 0;
+
+    if (*_cur_sym == '^')
     {
         _cur_sym++;
-        int val = GetE();
-        _cur_sym++;
-        return val;
+
+        val2 = GetX (&node2);
+        CHECK_ERROR;
+        val1 = pow (val1, val2);
+
+        TreeData_t elem = {'^', OPER};
+        *node = TreeNode_new (elem, node1, node2);
     }
     else
     {
-        return GetN();
+        *node = node1;
     }
+    return val1;
 }
 
-int GetE() //E ::= T{"+-"T}*
+int GetP(TreeNode_t **node)
 {
-    int val = GetT();
-    while (*_cur_sym == '+')
+    CHECK_ERROR;
+
+    int val = 0;
+    if (*_cur_sym == '(')
     {
         _cur_sym++;
-        val += GetT();
+
+        val = GetE (node);
+        CHECK_ERROR;
+
+        if (*_cur_sym != ')')
+        {
+            SET_ERROR;
+            printf ("Syntax error: \")\" expected, \"%c\" found. (Position = %d)\n", *_cur_sym, _start_sym - _cur_sym);
+            return val;
+        }
+        _cur_sym++;
     }
-    while (*_cur_sym == '-')
+    else
     {
-        _cur_sym++;
-        val -= GetT();
+        val = GetN (node);
     }
     return val;
 }
 
-int GetT() //T ::= X{"*/"X}*
+int GetE(TreeNode_t **node)
 {
-    int val = GetX();
-    while (*_cur_sym == '*')
+    CHECK_ERROR;
+
+    TreeNode_t *node1 = nullptr;
+    TreeNode_t *node2 = nullptr;
+
+    int val1 = GetT (&node1);
+    CHECK_ERROR;
+    int val2 = 0;
+
+    if (*_cur_sym == '+')
+    {
+        _cur_sym++; 
+
+        val2 = GetE (&node2);
+        CHECK_ERROR;
+        val1 += val2;
+
+        TreeData_t elem = {'+', OPER};
+        *node = TreeNode_new (elem, node1, node2);
+    }
+    else if (*_cur_sym == '-')
     {
         _cur_sym++;
-        val *= GetX();
+
+        val2 = GetE (&node2);
+        CHECK_ERROR;
+        val1 -= val2;
+
+        TreeData_t elem = {'-', OPER};
+        *node = TreeNode_new (elem, node1, node2);
     }
-    while (*_cur_sym == '/')
+    else
     {
-        _cur_sym++;
-        val /= GetX();
+        *node = node1;
     }
-    return val;
+    return val1;
 }
 
-int GetG0(char *expr) //G0 ::= E
+int GetT(TreeNode_t **node)
 {
+    CHECK_ERROR;
+
+    TreeNode_t *node1 = nullptr;
+    TreeNode_t *node2 = nullptr;
+
+    int val1 = GetX (&node1);
+    CHECK_ERROR;
+    int val2 = 0;
+
+    if (*_cur_sym == '*')
+    {
+        _cur_sym++;
+
+        val2 = GetT (&node2);
+        CHECK_ERROR;
+        val1 *= val2;
+
+        TreeData_t elem = {'*', OPER};
+        *node = TreeNode_new (elem, node1, node2);
+    }
+    else if (*_cur_sym == '/')
+    {
+        _cur_sym++;
+
+        val2 = GetT (&node2);
+        CHECK_ERROR;
+        val1 /= val2;
+
+        TreeData_t elem = {'/', OPER};
+        *node = TreeNode_new (elem, node1, node2);
+    }
+    else
+    {
+        *node = node1;
+    }
+    return val1;
+}
+
+int GetG0(char *expr, Tree_t *tree)
+{
+    RESET_ERROR;
     _cur_sym = expr;
-    int val = GetE();
+    _start_sym = _cur_sym;
+    int val = GetE (&(tree->root));
+    CHECK_ERROR;
+    if (strlen (expr) != (_cur_sym - _start_sym)) SET_ERROR;
     return val;
 }
 
