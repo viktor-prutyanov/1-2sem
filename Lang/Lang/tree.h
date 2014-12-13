@@ -9,22 +9,13 @@
 */
 
 #include <stdio.h>
+#include "lex.h"
 
-enum type
+typedef struct TreeData_t
 {
-    OPER = 0,
-    NUM = 1,
-    PARAM = 2,
-    FUNC = 3
+    int value;
+    TokenType_t type;
 };
-
-typedef struct elem_t
-{
-    char value;
-    type type;
-};
-
-typedef elem_t TreeData_t;
 
 typedef struct TreeNode_t
 {

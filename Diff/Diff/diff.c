@@ -43,6 +43,12 @@ int GetN(TreeNode_t **node)
     }
     else
     {
+        int sign = 1;
+        if (*Cur_sym == '-')
+        {
+            sign = -1;
+            Cur_sym++;
+        }
         while (true)
         {
             if ('0' <= *Cur_sym && *Cur_sym <= '9')
@@ -60,7 +66,7 @@ int GetN(TreeNode_t **node)
                 return 0;
             }
         }
-        TreeData_t elem = {val, NUM};
+        TreeData_t elem = {val * sign, NUM};
         if (Cur_sym - n_start_sym == 0)
         {
             printf ("Syntax error: number expected, nothing found. (Position = %d)\n", Cur_sym - Start_sym);
@@ -289,6 +295,21 @@ TreeNode_t *Diff(Tree_t *tree, TreeNode_t *node, char var, FILE *out_file)
     #define SUB(f1, f2) (TreeNode_new (sub, f1, f2))
     #define POW(f1, f2) (TreeNode_new (pow, f1, f2))
 
+    #define l           TreeNode_print_tex (node->left,  out_file, tree, "(", ")", false);
+    #define r           TreeNode_print_tex (node->right, out_file, tree, "(", ")", false);
+    #define plus        fprintf (out_file, "+");
+    #define minus       fprintf (out_file, "-");
+    #define ast         fprintf (out_file, "*");
+    #define slash       fprintf (out_file, "/");
+    #define d           fprintf (out_file, "^{'}");
+    #define b1          fprintf (out_file, "(");
+    #define b2          fprintf (out_file, ")");
+    #define br1         fprintf (out_file, "{");
+    #define br2         fprintf (out_file, "}");
+    #define equal       fprintf (out_file, "=");
+    #define cf          fprintf (out_file, "^");
+    #define nl          fprintf (out_file, "\\\\\n");
+
     #define END_PRINT \
         fprintf (out_file, "\\Rightarrow ");\
         TreeNode_print_tex (result, out_file, tree, "(", ")", false);\
@@ -302,33 +323,33 @@ TreeNode_t *Diff(Tree_t *tree, TreeNode_t *node, char var, FILE *out_file)
         #define dF dR
         if (node->data.value == 1)
         {
-            fprintf (out_file, "\\sin^{'}{x} = \\cos{x} : ");
-            result =  MUL (COMPOSE (cos, F), dF);  
-            END_PRINT;
+            fprintf (out_file, "\\sin^{'}{"); r br2 equal fprintf (out_file, "\\cos{"); r br2 ast r d nl
+
+            return  MUL (COMPOSE (cos, F), dF);  
         }
         else if (node->data.value == 2)
         {
-            fprintf (out_file, "\\cos^{'}{x} = \\-sin{x} : ");
-            result =  MUL (MUL (MINUS_ONE, COMPOSE (sin, F)), dF);  
-            END_PRINT;
+            fprintf (out_file, "\\cos^{'}{"); r br2 equal fprintf (out_file, "\\-sin{"); r br2 ast r d nl
+
+            return MUL (MUL (MINUS_ONE, COMPOSE (sin, F)), dF);  
         }
         else if (node->data.value == 3)
         {
-            fprintf (out_file, "\\tan^{'}{x} = 1/\\cos^{2}{x} : ");
-            result = MUL (DIV (ONE, POW (COMPOSE (cos, F), TWO)), dF);
-            END_PRINT;
+            fprintf (out_file, "\\tan^{'}{"); r br2 equal fprintf (out_file, "1/\\cos^{2}{"); r br2 ast r d nl
+
+            return MUL (DIV (ONE, POW (COMPOSE (cos, F), TWO)), dF);
         }
         else if (node->data.value == 4)
         {
-            fprintf (out_file, "\\ln^{'}{x} = \\frac{1}{x} : ");
-            result = MUL (DIV (ONE, F), dF);
-            END_PRINT;
+            fprintf (out_file, "\\ln^{'}{"); r br2 equal fprintf (out_file, "1/"); r ast r d nl
+
+            return MUL (DIV (ONE, F), dF);
         }
         else if (node->data.value == 5)
         {
-            fprintf (out_file, "\\exp{x})^{'} = \\exp{x} : ");
-            result =  MUL (COMPOSE (exp, F), dF);
-            END_PRINT;
+            fprintf (out_file, "\\exp^{'}{"); r br2 equal fprintf (out_file, "\\exp{"); r br2 ast r d nl
+
+            return MUL (COMPOSE (exp, F), dF);
         }
         else
         {
@@ -351,29 +372,37 @@ TreeNode_t *Diff(Tree_t *tree, TreeNode_t *node, char var, FILE *out_file)
         switch (node->data.value)
         {
         case '+':
-            fprintf (out_file, "(f+g)^{'} = f^{'} + g^{'} : ");
-            result =  ADD (dL, dR);
-            END_PRINT;
+            b1
+            TreeNode_print_tex (node->left, out_file, tree, "", "", false);
+            plus
+            TreeNode_print_tex (node->right, out_file, tree, "", "", false);
+            b2 d equal r d plus l d nl
+
+            return ADD (dL, dR);
             break;
         case '-':
-            fprintf (out_file, "(f-g)^{'} = f^{'} - g^{'} : ");
-            result =  SUB (dL, dR);
-            END_PRINT;
+            b1
+            TreeNode_print_tex (node->left, out_file, tree, "", "", false);
+            minus
+            TreeNode_print_tex (node->right, out_file, tree, "", "", false);
+            b2 d equal r d minus l d nl
+
+            return  SUB (dL, dR);
             break;
         case '*':
-            fprintf (out_file, "(f*g)^{'} = f^{'}g + g^{'}f : ");
-            result =  ADD (MUL (dL, R), MUL (dR, L));
-            END_PRINT;
+            b1 l ast r b2 d equal l d ast r plus l ast r d  nl
+
+            return  ADD (MUL (dL, R), MUL (dR, L));
             break;
         case '/':
-            fprintf (out_file, "(f/g)^{'} = (f^{'}g - g^{'}f)/g^{2} : ");
-            result =  DIV (SUB (MUL (dL, R), MUL (dR, L)), POW (R, TWO));
-            END_PRINT;
+            b1 l slash r b2 d equal b1 l d ast r minus l ast r d b2 slash r cf fprintf (out_file, "2"); nl
+
+            return  DIV (SUB (MUL (dL, R), MUL (dR, L)), POW (R, TWO));
             break;
         case '^':
-            fprintf (out_file, "(f^{g})^{'} = f^{g-1}(gf^{'}+f\\ln{f}g^{'}) : ");
-            result =  MUL (POW (L, SUB (R, ONE)), ADD ( MUL (dL, R), MUL (L, MUL (dR, COMPOSE (ln, L)))));
-            END_PRINT;
+            b1 l cf br1 r br2 b2 d equal l cf br1 r minus fprintf (out_file, "1"); br2 ast b1 r ast l d plus l ast fprintf(out_file, "\\ln"); br1 l br2 ast r d b2 nl
+            //f^{g})^{'} = f^{g-1}(gf^{'}+f\\ln{f}g^{'}
+            return MUL (POW (L, SUB (R, ONE)), ADD ( MUL (dL, R), MUL (L, MUL (dR, COMPOSE (ln, L)))));
             break;
         default:
             break;
@@ -392,6 +421,11 @@ TreeNode_t *Diff(Tree_t *tree, TreeNode_t *node, char var, FILE *out_file)
 bool Fold_consts(TreeNode_t *node)
 {
     if (node == nullptr) return false;
+
+    printf ("Fold:");
+    TreeNode_print_infix (node, stdout);
+    printf ("\n");
+
     if (node->data.type == OPER)
     {
         if ((node->left->data.type == NUM) && (node->right->data.type == NUM))
@@ -425,11 +459,49 @@ bool Fold_consts(TreeNode_t *node)
                 node->right = nullptr;
                 return true;
                 break;
-            case '/':
-                return false;
-                break;
             case '^':
-                return false;
+                if (node->left->data.value > 0 && node->right->data.value > 0)
+                {
+                    node->data.type = NUM;
+                    node->data.value = pow (node->left->data.value, node->right->data.value);
+                    TreeNode_delete (node->left);
+                    TreeNode_delete (node->right);
+                    node->left = nullptr;
+                    node->right = nullptr;
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+                break;
+            case '/':
+                if (node->left->data.value > node->right->data.value)
+                {
+                    for (int i = 2; i < node->left->data.value; i++)
+                    {
+                        if (node->left->data.value % i == 0 && node->right->data.value % i == 0)
+                        {
+                            node->left->data.value  /= i;
+                            node->right->data.value /= i;
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+                else
+                {
+                    for (int i = 2; i < node->right->data.value; i++)
+                    {
+                        if (node->left->data.value % i == 0 && node->right->data.value % i == 0)
+                        {
+                            node->left->data.value  /= i;
+                            node->right->data.value /= i;
+                            return true;
+                        }
+                    }
+                    return false;
+                }
                 break;
             default:
                 return false;
@@ -450,11 +522,44 @@ bool Fold_consts(TreeNode_t *node)
 bool Delete_dead_nodes(TreeNode_t *node)
 {
     if (node == nullptr) return false;
+
+    printf ("Delete:");
+    TreeNode_print_infix (node, stdout);
+    printf ("\n");
+
     if (node->data.type == OPER)
     {
-        if ((node->left->data.type == NUM) && (node->left->data.value == 0))
+        if ((node->data.value == '*') && (node->right->data.value == '/') && (node->right->data.type == OPER) 
+            && (node->right->left->data.value == 1) && (node->right->left->data.type == NUM))
         {
-            if (node->data.value == '*' || node->data.value == '/')
+            node->data.value = '/';
+            TreeNode_t *dead_node = node->right;
+            node->right = node->right->right;
+            dead_node->right = nullptr;
+            TreeNode_delete (dead_node);
+            free (dead_node);
+            dead_node = nullptr;
+            
+            return true;
+        }
+        else if ((node->data.value == '*') && (node->left->data.value == '/') && (node->left->data.type == OPER)
+            && (node->left->left->data.value == 1) && (node->left->left->data.type == NUM))
+        {
+
+            node->data.value = '/';
+            TreeNode_t *dead_node = node->left;
+            node->left = node->right;
+            node->right = dead_node->right;
+            dead_node->right = nullptr;
+            TreeNode_delete (dead_node);
+            free (dead_node);
+            dead_node = nullptr;
+
+            return true;
+        }
+        else if ((node->left->data.type == NUM) && (node->left->data.value == 0))
+        {
+            if (node->data.value == '*' || node->data.value == '/' || node->data.value == '^')
             {
                 TreeNode_delete (node->right);
                 TreeNode_delete (node->left);
@@ -497,6 +602,16 @@ bool Delete_dead_nodes(TreeNode_t *node)
                 node->right = nullptr;
                 node->data.type = NUM;
                 node->data.value = 0;
+                return true;
+            }
+            else if (node->data.value == '^')
+            {
+                TreeNode_delete (node->right);
+                TreeNode_delete (node->left);
+                node->left = nullptr;
+                node->right = nullptr;
+                node->data.type = NUM;
+                node->data.value = 1;
                 return true;
             }
             else if (node->data.value == '+' || node->data.value == '-')
@@ -547,6 +662,16 @@ bool Delete_dead_nodes(TreeNode_t *node)
                 node->data.value = dead_node->data.value;
                 free (dead_node);
                 dead_node = nullptr;
+                return true;
+            }
+            else if (node->data.value == '^')
+            {
+                TreeNode_delete (node->right);
+                TreeNode_delete (node->left);
+                node->left = nullptr;
+                node->right = nullptr;
+                node->data.value = 1;
+                node->data.type = NUM;
                 return true;
             }
             else
@@ -601,19 +726,44 @@ bool Delete_dead_nodes(TreeNode_t *node)
     {
         return Delete_dead_nodes(node->left) || Delete_dead_nodes(node->right);
     }
+    return false;
 }
 
 bool Optimize(Tree_t *tree, FILE *out_file)
 {
     if (tree == nullptr || out_file == nullptr) return true;
-    bool result = false;
+    bool res1 = false, res2 = false;
     do
     {
-        result = Fold_consts (tree->root) || Delete_dead_nodes (tree->root);
+        res1 = Fold_consts (tree->root); 
+        printf ("fold:%d\n", res1);
+        res2 = Delete_dead_nodes (tree->root);
+        printf ("delete:%d\n", res2);
+        printf ("STEP\n");
         fprintf (out_file, "\t\t");
         Tree_print_tex (tree, out_file); 
         fprintf (out_file, "\\\\\n");
     }
-    while (result);
+    while (res1 || res2);
     return true;
+}
+
+unsigned int pow(unsigned int base, unsigned int power)
+{
+    unsigned int result = 1;
+    while (power != 0) 
+    {
+        if (power & 1)
+        {
+            power--;
+            result *= base;
+        }
+        else
+        {
+            power >>= 1;
+            base *= base;
+        }
+        
+    }
+    return result;
 }
