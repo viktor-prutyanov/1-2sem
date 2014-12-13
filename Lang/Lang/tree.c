@@ -8,7 +8,7 @@
 *   @author Viktor Prutyanov mailto:vitteran@gmail.com 
 */
 
-#include "diff.h"
+#include "synt.h"
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -67,21 +67,26 @@ bool TreeNode_add(Tree_t *tree, TreeNode_t *new_left_node, TreeNode_t *new_right
 bool TreeNode_print_prefix(TreeNode_t *node, FILE *file)
 {
     if (node == nullptr || file == nullptr) return false;
-    if (node->data.type == OPER || node->data.type == PARAM)
+    if (node->data.type == OPERATOR || node->data.type == VARIABLE)
     {
         fprintf (file, "(%c" , node->data.value);
     }
-    else if (node->data.type == NUM)
+    else if (node->data.type == NUMBER)
     {
         fprintf (file, "(%d" , node->data.value);
     }
-    else if (node->data.type == FUNC)
+    else if (node->data.type == FUNCTION)
     {
         #define FUNC(name, str, num)                                    \
             if (num == (node->data.value)) fprintf (file, "(%s" , str);
         #include "funcs.h"
         #undef FUNC
     }
+    else if (node->data.type == CONTROL)
+    {
+        fprintf (file, "(%c" , node->data.value);
+    }
+    
     if (node->left != nullptr) TreeNode_print_prefix (node->left, file);
     if (node->right != nullptr) TreeNode_print_prefix (node->right, file);
     fprintf (file, ")");
@@ -94,124 +99,29 @@ bool TreeNode_print_infix(TreeNode_t *node, FILE *file)
     if (node == nullptr || file == nullptr) return false;
     fprintf (file, "(");
     if (node->left != nullptr) TreeNode_print_infix (node->left, file);
-    if (node->data.type == OPER || node->data.type == PARAM)
+
+    if (node->data.type == OPERATOR || node->data.type == VARIABLE)
     {
         fprintf (file, "%c" , node->data.value);
     }
-    else if (node->data.type == NUM)
+    else if (node->data.type == NUMBER)
     {
-        if (node->data.value < 0)
-        {
-            fprintf (file, "(%d)" , node->data.value);
-        }
-        else
-        {
-            fprintf (file, "%d" , node->data.value);
-        }
+        fprintf (file, "%d" , node->data.value);
     }
-    else if (node->data.type == FUNC)
+    else if (node->data.type == FUNCTION)
     {
         #define FUNC(name, str, num)                                    \
             if (num == (node->data.value)) fprintf (file, "%s" , str);
         #include "funcs.h"
         #undef FUNC
     }
+    else if (node->data.type == CONTROL)
+    {
+        fprintf (file, "%c" , node->data.value);
+    }
+  
     if (node->right != nullptr) TreeNode_print_infix (node->right, file);
     fprintf (file, ")");
-    return true;
-}
-
-bool TreeNode_print_for_human(TreeNode_t *node, FILE *file, Tree_t *tree)
-{
-    if (node == nullptr || file == nullptr) return false;
-    if (!TreeNode_is_leaf (node) && node != tree->root)
-    {
-        fprintf (file, "(");
-    }
-    if (node->left != nullptr) TreeNode_print_for_human (node->left, file, tree);
-    if (node->data.type == OPER || node->data.type == PARAM)
-    {
-        fprintf (file, "%c" , node->data.value);
-    }
-    else if (node->data.type == NUM)
-    {
-        fprintf (file, "%d" , node->data.value);
-    }
-    else if (node->data.type == FUNC)
-    {
-        #define FUNC(name, str, num)                                    \
-            if (num == (node->data.value)) fprintf (file, "%s" , str);
-        #include "funcs.h"
-        #undef FUNC
-    }
-    if (node->right != nullptr) TreeNode_print_for_human (node->right, file, tree);
-    if (!TreeNode_is_leaf (node) && node != tree->root)
-    {
-        fprintf (file, ")");
-    }
-    return true;
-}
-
-bool TreeNode_print_tex(TreeNode_t *node, FILE *file, Tree_t *tree, const char *bracket1, const char *bracket2, bool is_by_func)
-{
-    if (node == nullptr || file == nullptr) return false;
-    if (!TreeNode_is_leaf (node) && node != tree->root || is_by_func)
-    {
-        fprintf (file, bracket1);
-    }
-    if (node->left != nullptr && node->data.type == OPER && node->data.value == '+')
-    {
-        TreeNode_print_tex (node->left, file, tree, "", "", false);
-    }
-    else if (node->data.type == OPER && (node->data.value == '*' || node->data.value == '/') && 
-        (!((node->left->data.value == '+' || node->left->data.value == '-') &&  node->left->data.type == OPER )))
-    {
-        TreeNode_print_tex (node->left, file, tree, "", "", false);
-    }
-    else if (node->left != nullptr) TreeNode_print_tex (node->left, file, tree, "(", ")", false);
-    if (node->data.type == OPER || node->data.type == PARAM)
-    {
-        fprintf (file, "%c" , node->data.value);
-    }
-    else if (node->data.type == NUM)
-    {
-        fprintf (file, "%d" , node->data.value);
-    }
-    else if (node->data.type == FUNC)
-    {
-        #define FUNC(name, str, num)                                    \
-            if (num == (node->data.value)) fprintf (file, "\\%s" , str);
-        #include "funcs.h"
-        #undef FUNC
-    }
-    if (node->right != nullptr)
-    {
-        if (node->data.type == FUNC)
-        {
-            TreeNode_print_tex (node->right, file, tree, "{(", ")}", true);
-        }
-        else if (node->data.type == OPER && node->data.value == '^' )
-        {
-            TreeNode_print_tex (node->right, file, tree, "{", "}", false);
-        }
-        else if (node->data.type == OPER && node->data.value == '+')
-        {
-            TreeNode_print_tex (node->right, file, tree, "", "", false);
-        }
-        else if (node->data.type == OPER && (node->data.value == '*' || node->data.value == '/') && 
-            (!((node->right->data.value == '+' || node->right->data.value == '-') &&  node->right->data.type == OPER )))
-        {
-            TreeNode_print_tex (node->right, file, tree, "", "", false);
-        }
-        else
-        {
-            TreeNode_print_tex (node->right, file, tree, "(", ")", false);
-        }
-    }
-    if (!TreeNode_is_leaf (node) && node != tree->root || is_by_func)
-    {
-        fprintf (file, bracket2);
-    }
     return true;
 }
 
@@ -252,19 +162,6 @@ bool Tree_print_infix(Tree_t *tree, FILE *file)
 {
     if (tree == nullptr || file == nullptr) return false;
     return TreeNode_print_infix (tree->root, file);
-}
-
-bool Tree_print_for_human(Tree_t *tree, FILE *file)
-{
-    if (tree == nullptr || file == nullptr) return false;
-    return TreeNode_print_for_human (tree->root, file, tree);
-}
-
-bool Tree_print_tex(Tree_t *tree, FILE *file)
-{
-    if (tree == nullptr || file == nullptr) return false;
-    bool result = TreeNode_print_tex (tree->root, file, tree, "(", ")", false);
-    return result;
 }
 
 TreeNode_t *TreeNode_read(FILE *file)

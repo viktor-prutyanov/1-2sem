@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include "diff.h"
 #include <ctype.h>
+#include <string.h>
 
 #define TEX_BEGIN \
 "\\documentclass[12pt]{article}\n\
@@ -36,6 +37,8 @@
 
 #define VAR 'x'
 
+bool skip_spaces(char *in_string, char *out_string);
+
 int main()
 {
     FILE *out_file = fopen ("out.tex", "w");
@@ -47,11 +50,14 @@ int main()
     }
 
     char expr[MAX_EXPR_SIZE] = {};
+    char clean_expr[MAX_EXPR_SIZE] = {};
     printf ("Enter expression (max length is %d) to differentiate, you can use +-/*^()\n", MAX_EXPR_SIZE);
-    scanf ("%s", &expr);
+    gets (expr);
     printf ("Enter variable:\n");
     char var[] = "x";
     scanf ("%1s", var);
+    skip_spaces (expr, clean_expr);
+    printf ("%s", clean_expr);
     if (isalpha (var[0]))
     {
         printf ("Variable is %c\n", var[0]);
@@ -65,7 +71,7 @@ int main()
     Tree_t *tree = (Tree_t *)calloc (1, sizeof(Tree_t));
     Tree_ctor (tree);
     
-    GetG0 (expr, tree);
+    GetG0 (clean_expr, tree);
     extern bool Err;
     if (Err)
     {
@@ -119,6 +125,8 @@ int main()
         fprintf (out_file, "\t\\newline\n\tFurther simplifications reader can hold their own.\\newline\n");
         fprintf (out_file, TEX_END);
 
+        Tree_print_prefix (diff_tree, stdout);
+
         Tree_dtor (diff_tree);
         free (diff_tree);
         diff_tree = nullptr;
@@ -137,4 +145,26 @@ int main()
     #endif
 
     return EXIT_SUCCESS;
+}
+
+bool skip_spaces(char *in_string, char *out_string)
+{
+    if (in_string == nullptr || out_string == nullptr)
+    {
+        return false;
+    }
+
+    int length = strlen (in_string);
+    int pos = 0;
+    
+    for (int i = 0; i < length; i++)
+    {
+        if (in_string[i] != ' ')
+        {
+            out_string[pos] = in_string[i];
+            pos++;
+        }
+    }
+
+    return true;
 }
