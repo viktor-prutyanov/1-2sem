@@ -421,11 +421,6 @@ TreeNode_t *Diff(Tree_t *tree, TreeNode_t *node, char var, FILE *out_file)
 bool Fold_consts(TreeNode_t *node)
 {
     if (node == nullptr) return false;
-
-    printf ("Fold:");
-    TreeNode_print_infix (node, stdout);
-    printf ("\n");
-
     if (node->data.type == OPER)
     {
         if ((node->left->data.type == NUM) && (node->right->data.type == NUM))
@@ -522,11 +517,6 @@ bool Fold_consts(TreeNode_t *node)
 bool Delete_dead_nodes(TreeNode_t *node)
 {
     if (node == nullptr) return false;
-
-    printf ("Delete:");
-    TreeNode_print_infix (node, stdout);
-    printf ("\n");
-
     if (node->data.type == OPER)
     {
         if ((node->data.value == '*') && (node->right->data.value == '/') && (node->right->data.type == OPER) 
@@ -736,14 +726,7 @@ bool Optimize(Tree_t *tree, FILE *out_file)
     do
     {
         res1 = Fold_consts (tree->root); 
-<<<<<<< HEAD
         res2 = Delete_dead_nodes (tree->root);
-=======
-        printf ("fold:%d\n", res1);
-        res2 = Delete_dead_nodes (tree->root);
-        printf ("delete:%d\n", res2);
-        printf ("STEP\n");
->>>>>>> 06b3f064458845b7c2e5f8842e0600251b173df9
         fprintf (out_file, "\t\t");
         Tree_print_tex (tree, out_file); 
         fprintf (out_file, "\\\\\n");
