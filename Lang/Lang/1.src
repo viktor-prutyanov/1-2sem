@@ -1,5 +1,12 @@
 {
-	i = cos(x) + 5;
-	print (a);
-	print (a);
+	scan (a);
+	scan (b);
+	scan (c);
+	d = b^2 - 4*a*c;
+	if (d >= 0)
+	{
+		d = d ^ (1/2);
+		print ((b*(-1) + d) / (2*a));
+		print ((b*(-1) - d) / (2*a));
+	}
 }

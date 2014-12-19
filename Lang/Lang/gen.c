@@ -1,280 +1,240 @@
 /**
-*   Diffirentiator
+*   Assembly code generator
 *
-*   @date 11.2014
+*   @date 12.2014
 *
 *   @copyright GNU GPL v2.0
 *
 *   @author Viktor Prutyanov mailto:vitteran@gmail.com 
 */
 
-#include "diff.h"
-#include <stdio.h>
-#include "string.h"
-#include <ctype.h>
+#include "gen.h"
 #include <stdlib.h>
+#include <ctype.h>
 
-#define CHECK_ERROR if (Err) { return 0; }
-#define   SET_ERROR Err = true
-#define RESET_ERROR Err = false
+#define MIN_DIFF_NUM 11
+#define MAX_DIFF_NUM 14
 
-#define MAX_FUNC_NAME_LENGTH 8
+TreeNode_t *Diff(TreeNode_t *node, char var);
+bool Optimize(TreeNode_t *node);
+bool Delete_dead_nodes(TreeNode_t *node);
+bool Fold_consts(TreeNode_t *node);
+unsigned int pow(unsigned int base, unsigned int power);
 
-char   *Cur_sym = nullptr;
-char *Start_sym = nullptr;
-bool Err = false;
+int Labels_amount = 1;
 
-int GetN(TreeNode_t **node)
+bool Generate (TreeNode_t *node, FILE *file)
 {
-    CHECK_ERROR;
-    char *n_start_sym = Cur_sym;
-    int val = 0;
+    if (node == nullptr || node->data.type != CONTROL || node->data.value != '~' || file == nullptr) return false;
 
-    if (isalpha (*Cur_sym))
+    if (node->left->data.type == L_OPERATOR && node->left->data.value == '=')
     {
-        TreeData_t elem = {*Cur_sym++, PARAM};
-        if (Cur_sym - n_start_sym == 0)
-        {
-            printf ("Syntax error: param expected, nothing found. (Position = %d)\n", Cur_sym - Start_sym);
-            SET_ERROR;
-            return 0;
-        }
-        *node = TreeNode_new (elem, nullptr, nullptr);
+        Calculate (node->left->right, file);
+        fprintf (file, "pop %cx\n", node->left->left->data.value);  
     }
-    else
+    else if (node->left->data.type == FUNCTION)
     {
-        int sign = 1;
-        if (*Cur_sym == '-')
-        {
-            sign = -1;
-            Cur_sym++;
-        }
-        while (true)
-        {
-            if ('0' <= *Cur_sym && *Cur_sym <= '9')
-            {
-                val = val * 10 + *Cur_sym++ - '0';
-            }
-            else if (strchr("+-/*^()", *Cur_sym) || *Cur_sym == 0)
-            {
-                break;
-            }
-            else
-            {
-                printf ("Syntax error: unknown symbol \"%c\" (code = %d). (Position = %d)\n", *Cur_sym, *Cur_sym, Cur_sym - Start_sym);
-                SET_ERROR;
-                return 0;
-            }
-        }
-        TreeData_t elem = {val * sign, NUM};
-        if (Cur_sym - n_start_sym == 0)
-        {
-            printf ("Syntax error: number expected, nothing found. (Position = %d)\n", Cur_sym - Start_sym);
-            SET_ERROR;
-            return 0;
-        }
-        *node = TreeNode_new (elem, nullptr, nullptr);
-    }
-
-
-    return 0;
-}
-
-int GetX(TreeNode_t **node)
-{
-    CHECK_ERROR;
-
-    TreeNode_t *node1 = nullptr;
-    TreeNode_t *node2 = nullptr;
-
-    GetP (&node1);
-    CHECK_ERROR;
-
-    if (*Cur_sym == '^')
-    {
-        Cur_sym++;
-
-        GetX (&node2);
-        CHECK_ERROR;
-
-        TreeData_t elem = {'^', OPER};
-        *node = TreeNode_new (elem, node1, node2);
-    }
-    else
-    {
-        *node = node1;
-    }
-    return 0;
-}
-
-int GetP(TreeNode_t **node)
-{
-    CHECK_ERROR;
-
-    if (isalpha (*Cur_sym) && isalnum (*(Cur_sym + 1)))
-    {
-        char func[MAX_FUNC_NAME_LENGTH] = "";
-        int index = 0;
-        while (isalnum (*Cur_sym))
-        {
-            func[index++] = *Cur_sym++;
-        }
-        if (*Cur_sym != '(') SET_ERROR;
-        
-        if (strcmp(func, "") == 0)
-        {
-            SET_ERROR;
-        }
-        #define FUNC(name, str, num)                            \
-            else if (strcmp(func, str) == 0)                    \
-            {                                                   \
-                Cur_sym++; GetE(node);                          \
-                CHECK_ERROR;                                    \
-                TreeData_t elem = {num, FUNC};                  \
-                *node = TreeNode_new (elem, nullptr, *node);    \
-            }
+        if (false) {}
+        #define FUNC(name, str, num, is_math, is_calculatable, code)                               \
+        else if (num == node->left->data.value && !is_math)                                        \
+        {                                                                                          \
+            if (is_calculatable)                                                                   \
+            {                                                                                      \
+                Calculate (node->left->right, file);                                               \
+                fprintf (file, code, node->left->right->data.value, node->left->right->data.value);\
+            }                                                                                      \
+            else                                                                                   \
+            {                                                                                      \
+                fprintf (file, code, node->left->right->data.value, node->left->right->data.value);\
+            }                                                                                      \
+        }              
         #include "funcs.h"
         #undef FUNC
         else
         {
-            SET_ERROR;
+            return false;
         }
-
-        if (*Cur_sym != ')')
+    }
+    else if (node->left->data.type == W_OPERATOR)
+    {
+        if (node->left->data.value == 1)
         {
-            SET_ERROR;
-            printf ("Syntax error: \")\" expected, \"%c\" found. (Position = %d)\n", *Cur_sym, Start_sym - Cur_sym);
-            return 0;
+            Calculate (node->left->left->right, file);
+            Calculate (node->left->left->left, file);
+            if (false)
+            {
+
+            }
+            #define L_OPER(name, str, num, code, invert_code)   \
+            else if (num == node->left->left->data.value)       \
+            {                                                   \
+                fprintf (file, invert_code);                    \
+            }
+            #include "l_opers.h"
+            #undef L_OPER
+            else if (node->left->left->data.value == '<')
+            {
+                fprintf (file, "jae");                    
+                
+            }
+            else if (node->left->left->data.value == '>')
+            {
+                fprintf (file, "jbe");                    
+            }
+            else
+            {
+                return false;
+            }
+            fprintf (file, " _l%d\n", Labels_amount);
+            Generate (node->left->right, file);
+            fprintf (file, ":l%d\n", Labels_amount);
+            Labels_amount++;
         }
-        Cur_sym++;
-    }
-    else if (*Cur_sym == '(')
-    {
-        Cur_sym++;
-
-        GetE (node);
-        CHECK_ERROR;
-
-        if (*Cur_sym != ')')
+        else if (node->left->data.value == 2)
         {
-            SET_ERROR;
-            printf ("Syntax error: \")\" expected, \"%c\" found. (Position = %d)\n", *Cur_sym, Start_sym - Cur_sym);
-            return 0;
+            fprintf (file, ":l%d\n", Labels_amount);
+            Calculate (node->left->left->right, file);
+            Calculate (node->left->left->left, file);
+            if (false)
+            {
+
+            }
+            #define L_OPER(name, str, num, code, invert_code)   \
+            else if (num == node->left->left->data.value)       \
+            {                                                   \
+                fprintf (file, invert_code);                    \
+            }
+            #include "l_opers.h"
+            #undef L_OPER
+            else if (node->left->left->data.value == '<')
+            {
+                fprintf (file, "jae");                    
+                
+            }
+            else if (node->left->left->data.value == '>')
+            {
+                fprintf (file, "jbe");                    
+            }
+            else
+            {
+                return false;
+            }
+            fprintf (file, " _l%d\n", Labels_amount + 1);
+            Generate (node->left->right, file);
+            fprintf (file, "jmp _l%d\n", Labels_amount);
+            fprintf (file, ":l%d\n", Labels_amount + 1);
+            Labels_amount += 2;
         }
-        Cur_sym++;
+        else 
+        {
+            return false;
+        }
+    }
+
+    if (node->right == nullptr)
+    {
+        return true;
+    }
+    else if (node->right->data.type == CONTROL && node->right->data.value == '~')
+    {
+        return Generate (node->right, file);
     }
     else
     {
-        GetN (node);
+        return true;
     }
-    return 0;
+
+    return true;
 }
 
-int GetE(TreeNode_t **node)
+bool Calculate (TreeNode_t *node, FILE *file)
 {
-    CHECK_ERROR;
-
-    TreeNode_t *node1 = nullptr;
-    TreeNode_t *node2 = nullptr;
-
-    GetT (&node1);
-    CHECK_ERROR;
-
-    if (*Cur_sym == '+')
+    if (file == nullptr) return false;
+    if (node == nullptr) return true;
+ 
+    if (node->data.type == FUNCTION && (MIN_DIFF_NUM <= node->data.value && node->data.value <= MAX_DIFF_NUM))
     {
-        Cur_sym++; 
-
-        GetE (&node2);
-        CHECK_ERROR;
-
-        TreeData_t elem = {'+', OPER};
-        *node = TreeNode_new (elem, node1, node2);
+        TreeNode_t *diff_root = Diff (node->right, node->data.value - MIN_DIFF_NUM + 'a');
+        Optimize (diff_root);
+        bool result = Calculate (diff_root, file);
+        TreeNode_delete (diff_root);
+        return result;
     }
-    else if (*Cur_sym == '-')
+
+    Calculate (node->right, file);
+    Calculate (node->left, file);
+
+    if (node->data.type == NUMBER)
     {
-        Cur_sym++;
-
-        GetE (&node2);
-        CHECK_ERROR;
-
-        TreeData_t elem = {'-', OPER};
-        *node = TreeNode_new (elem, node1, node2);
+        fprintf (file, "push %d\n", node->data.value);
+        return true;
+    }
+    else if (node->data.type == VARIABLE)
+    {
+        fprintf (file, "push %cx\n", node->data.value);
+        return true;
+    }
+    else if (node->data.type == A_OPERATOR)
+    {
+        switch (node->data.value)
+        {
+        case '+':
+            fprintf (file, "add\n");
+            break;
+        case '-':
+            fprintf (file, "sub\n");
+            break;
+        case '*':
+            fprintf (file, "mul\n");
+            break;
+        case '/':
+            fprintf (file, "div\n");
+            break;
+        case '^':
+            fprintf (file, "pow\n");
+            break;
+        default:
+            break;
+        }
+        return true;
+    }
+    else if (node->data.type == FUNCTION)
+    {
+        if (false) {}
+        #define FUNC(name, str, num, is_math) else if (node->data.value == num && is_math) { fprintf (file, str); fprintf (file, "\n"); return true;}
+        #include "funcs.h"
+        #undef FUNC
+        else
+        {
+            return false;
+        }
     }
     else
     {
-        *node = node1;
+        return false;
     }
-    return 0;
 }
 
-int GetT(TreeNode_t **node)
+TreeNode_t *Diff(TreeNode_t *node, char var)
 {
-    CHECK_ERROR;
+    if (node == nullptr || !isalpha(var)) return nullptr;
 
-    TreeNode_t *node1 = nullptr;
-    TreeNode_t *node2 = nullptr;
-
-    GetX (&node1);
-    CHECK_ERROR;
-
-    if (*Cur_sym == '*')
-    {
-        Cur_sym++;
-
-        GetT (&node2);
-        CHECK_ERROR;
-
-        TreeData_t elem = {'*', OPER};
-        *node = TreeNode_new (elem, node1, node2);
-    }
-    else if (*Cur_sym == '/')
-    {
-        Cur_sym++;
-
-        GetT (&node2);
-        CHECK_ERROR;
-
-        TreeData_t elem = {'/', OPER};
-        *node = TreeNode_new (elem, node1, node2);
-    }
-    else
-    {
-        *node = node1;
-    }
-    return 0;
-}
-
-int GetG0(char *expr, Tree_t *tree)
-{
-    RESET_ERROR;
-    Cur_sym = expr;
-    Start_sym = Cur_sym;
-    GetE (&(tree->root));
-    CHECK_ERROR;
-    if (strlen (expr) != (Cur_sym - Start_sym)) SET_ERROR;
-    return 0;
-}
-
-TreeNode_t *Diff(Tree_t *tree, TreeNode_t *node, char var, FILE *out_file)
-{
-    if (tree == nullptr || node == nullptr || !isalpha(var) || out_file == nullptr) return nullptr;
-
-    elem_t add = {'+', OPER};
-    elem_t sub = {'-', OPER};
-    elem_t mul = {'*', OPER};
-    elem_t div = {'/', OPER};
-    elem_t pow = {'^', OPER};
-
-    elem_t sin = {1, FUNC};
-    elem_t cos = {2, FUNC};
-    elem_t tg =  {3, FUNC};
-    elem_t ln =  {4, FUNC};
-    elem_t exp = {5, FUNC};
-
-    elem_t minus_one = {-1, NUM};
-    elem_t zero      = {0,  NUM};
-    elem_t one       = {1,  NUM};
-    elem_t two       = {2,  NUM};
+    TreeData_t add = {'+', A_OPERATOR}; 
+    TreeData_t sub = {'-', A_OPERATOR};
+    TreeData_t mul = {'*', A_OPERATOR};
+    TreeData_t div = {'/', A_OPERATOR};
+    TreeData_t pow = {'^', A_OPERATOR};
+    
+    TreeData_t sin = {1, FUNCTION};
+    TreeData_t cos = {2, FUNCTION};
+    TreeData_t tan = {3, FUNCTION};
+    TreeData_t exp = {4, FUNCTION};
+    TreeData_t ln  = {5, FUNCTION};
+    
+    TreeData_t minus_one = {-1, NUMBER};
+    TreeData_t zero      = {0,  NUMBER};
+    TreeData_t one       = {1,  NUMBER};
+    TreeData_t two       = {2,  NUMBER};
 
     TreeNode_t *result = nullptr;
 
@@ -285,8 +245,8 @@ TreeNode_t *Diff(Tree_t *tree, TreeNode_t *node, char var, FILE *out_file)
 
     #define R                   (TreeNode_copy (node->right))
     #define L                   (TreeNode_copy (node->left))
-    #define dR                  (Diff (tree, node->right, var, out_file))
-    #define dL                  (Diff (tree, node->left,  var, out_file))
+    #define dR                  (Diff (node->right, var))
+    #define dL                  (Diff (node->left,  var))
     #define COMPOSE(F1, F2)     (TreeNode_new (F1, nullptr, F2))
 
     #define MUL(f1, f2) (TreeNode_new (mul, f1, f2))
@@ -295,60 +255,29 @@ TreeNode_t *Diff(Tree_t *tree, TreeNode_t *node, char var, FILE *out_file)
     #define SUB(f1, f2) (TreeNode_new (sub, f1, f2))
     #define POW(f1, f2) (TreeNode_new (pow, f1, f2))
 
-    #define l           TreeNode_print_tex (node->left,  out_file, tree, "(", ")", false);
-    #define r           TreeNode_print_tex (node->right, out_file, tree, "(", ")", false);
-    #define plus        fprintf (out_file, "+");
-    #define minus       fprintf (out_file, "-");
-    #define ast         fprintf (out_file, "*");
-    #define slash       fprintf (out_file, "/");
-    #define d           fprintf (out_file, "^{'}");
-    #define b1          fprintf (out_file, "(");
-    #define b2          fprintf (out_file, ")");
-    #define br1         fprintf (out_file, "{");
-    #define br2         fprintf (out_file, "}");
-    #define equal       fprintf (out_file, "=");
-    #define cf          fprintf (out_file, "^");
-    #define nl          fprintf (out_file, "\\\\\n");
-
-    #define END_PRINT \
-        fprintf (out_file, "\\Rightarrow ");\
-        TreeNode_print_tex (result, out_file, tree, "(", ")", false);\
-        fprintf (out_file, "\\\\\n");\
-        return result;
-
     switch (node->data.type)
     {
-    case FUNC:
+    case FUNCTION:
         #define F R
         #define dF dR
         if (node->data.value == 1)
         {
-            fprintf (out_file, "\\sin^{'}{"); r br2 equal fprintf (out_file, "\\cos{"); r br2 ast r d nl
-
             return  MUL (COMPOSE (cos, F), dF);  
         }
         else if (node->data.value == 2)
         {
-            fprintf (out_file, "\\cos^{'}{"); r br2 equal fprintf (out_file, "\\-sin{"); r br2 ast r d nl
-
             return MUL (MUL (MINUS_ONE, COMPOSE (sin, F)), dF);  
         }
         else if (node->data.value == 3)
         {
-            fprintf (out_file, "\\tan^{'}{"); r br2 equal fprintf (out_file, "1/\\cos^{2}{"); r br2 ast r d nl
-
             return MUL (DIV (ONE, POW (COMPOSE (cos, F), TWO)), dF);
         }
         else if (node->data.value == 4)
         {
-            fprintf (out_file, "\\ln^{'}{"); r br2 equal fprintf (out_file, "1/"); r ast r d nl
-
             return MUL (DIV (ONE, F), dF);
         }
         else if (node->data.value == 5)
         {
-            fprintf (out_file, "\\exp^{'}{"); r br2 equal fprintf (out_file, "\\exp{"); r br2 ast r d nl
-
             return MUL (COMPOSE (exp, F), dF);
         }
         else
@@ -358,7 +287,7 @@ TreeNode_t *Diff(Tree_t *tree, TreeNode_t *node, char var, FILE *out_file)
         #undef F
         #undef dF
         break;
-    case PARAM:
+    case VARIABLE:
         if (node->data.value == var)
         {
             return ONE;
@@ -368,47 +297,29 @@ TreeNode_t *Diff(Tree_t *tree, TreeNode_t *node, char var, FILE *out_file)
             return ZERO;
         }
         break;
-    case OPER:
+    case A_OPERATOR:
         switch (node->data.value)
         {
         case '+':
-            b1
-            TreeNode_print_tex (node->left, out_file, tree, "", "", false);
-            plus
-            TreeNode_print_tex (node->right, out_file, tree, "", "", false);
-            b2 d equal r d plus l d nl
-
             return ADD (dL, dR);
             break;
         case '-':
-            b1
-            TreeNode_print_tex (node->left, out_file, tree, "", "", false);
-            minus
-            TreeNode_print_tex (node->right, out_file, tree, "", "", false);
-            b2 d equal r d minus l d nl
-
-            return  SUB (dL, dR);
+            return SUB (dL, dR);
             break;
         case '*':
-            b1 l ast r b2 d equal l d ast r plus l ast r d  nl
-
-            return  ADD (MUL (dL, R), MUL (dR, L));
+            return ADD (MUL (dL, R), MUL (dR, L));
             break;
         case '/':
-            b1 l slash r b2 d equal b1 l d ast r minus l ast r d b2 slash r cf fprintf (out_file, "2"); nl
-
-            return  DIV (SUB (MUL (dL, R), MUL (dR, L)), POW (R, TWO));
+            return DIV (SUB (MUL (dL, R), MUL (dR, L)), POW (R, TWO));
             break;
         case '^':
-            b1 l cf br1 r br2 b2 d equal l cf br1 r minus fprintf (out_file, "1"); br2 ast b1 r ast l d plus l ast fprintf(out_file, "\\ln"); br1 l br2 ast r d b2 nl
-            //f^{g})^{'} = f^{g-1}(gf^{'}+f\\ln{f}g^{'}
             return MUL (POW (L, SUB (R, ONE)), ADD ( MUL (dL, R), MUL (L, MUL (dR, COMPOSE (ln, L)))));
             break;
         default:
             break;
         }
         break;
-    case NUM:
+    case NUMBER:
         return ZERO;
         break;
     default:
@@ -416,19 +327,34 @@ TreeNode_t *Diff(Tree_t *tree, TreeNode_t *node, char var, FILE *out_file)
         break;
     }
     return nullptr;
+
+    #undef ONE        
+    #undef TWO        
+    #undef MINUS_ONE  
+    #undef ZERO       
+    #undef R         
+    #undef L         
+    #undef dR    
+    #undef dL    
+    #undef COMPOSE
+    #undef MUL
+    #undef DIV
+    #undef ADD
+    #undef SUB
+    #undef POW
 }
 
 bool Fold_consts(TreeNode_t *node)
 {
     if (node == nullptr) return false;
-    if (node->data.type == OPER)
+    if (node->data.type == A_OPERATOR)
     {
-        if ((node->left->data.type == NUM) && (node->right->data.type == NUM))
+        if ((node->left->data.type == NUMBER) && (node->right->data.type == NUMBER))
         {
             switch (node->data.value)
             {
             case '+':
-                node->data.type = NUM;
+                node->data.type = NUMBER;
                 node->data.value = node->left->data.value + node->right->data.value;
                 TreeNode_delete (node->left);
                 TreeNode_delete (node->right);
@@ -437,7 +363,7 @@ bool Fold_consts(TreeNode_t *node)
                 return true;
                 break;
             case '-':
-                node->data.type = NUM;
+                node->data.type = NUMBER;
                 node->data.value = node->left->data.value - node->right->data.value;
                 TreeNode_delete (node->left);
                 TreeNode_delete (node->right);
@@ -446,7 +372,7 @@ bool Fold_consts(TreeNode_t *node)
                 return true;
                 break;
             case '*':
-                node->data.type = NUM;
+                node->data.type = NUMBER;
                 node->data.value = node->left->data.value * node->right->data.value;
                 TreeNode_delete (node->left);
                 TreeNode_delete (node->right);
@@ -457,7 +383,7 @@ bool Fold_consts(TreeNode_t *node)
             case '^':
                 if (node->left->data.value > 0 && node->right->data.value > 0)
                 {
-                    node->data.type = NUM;
+                    node->data.type = NUMBER;
                     node->data.value = pow (node->left->data.value, node->right->data.value);
                     TreeNode_delete (node->left);
                     TreeNode_delete (node->right);
@@ -517,10 +443,10 @@ bool Fold_consts(TreeNode_t *node)
 bool Delete_dead_nodes(TreeNode_t *node)
 {
     if (node == nullptr) return false;
-    if (node->data.type == OPER)
+    if (node->data.type == A_OPERATOR)
     {
-        if ((node->data.value == '*') && (node->right->data.value == '/') && (node->right->data.type == OPER) 
-            && (node->right->left->data.value == 1) && (node->right->left->data.type == NUM))
+        if ((node->data.value == '*') && (node->right->data.value == '/') && (node->right->data.type == A_OPERATOR) 
+            && (node->right->left->data.value == 1) && (node->right->left->data.type == NUMBER))
         {
             node->data.value = '/';
             TreeNode_t *dead_node = node->right;
@@ -532,8 +458,8 @@ bool Delete_dead_nodes(TreeNode_t *node)
             
             return true;
         }
-        else if ((node->data.value == '*') && (node->left->data.value == '/') && (node->left->data.type == OPER)
-            && (node->left->left->data.value == 1) && (node->left->left->data.type == NUM))
+        else if ((node->data.value == '*') && (node->left->data.value == '/') && (node->left->data.type == A_OPERATOR)
+            && (node->left->left->data.value == 1) && (node->left->left->data.type == NUMBER))
         {
 
             node->data.value = '/';
@@ -547,7 +473,7 @@ bool Delete_dead_nodes(TreeNode_t *node)
 
             return true;
         }
-        else if ((node->left->data.type == NUM) && (node->left->data.value == 0))
+        else if ((node->left->data.type == NUMBER) && (node->left->data.value == 0))
         {
             if (node->data.value == '*' || node->data.value == '/' || node->data.value == '^')
             {
@@ -555,7 +481,7 @@ bool Delete_dead_nodes(TreeNode_t *node)
                 TreeNode_delete (node->left);
                 node->left = nullptr;
                 node->right = nullptr;
-                node->data.type = NUM;
+                node->data.type = NUMBER;
                 node->data.value = 0;
                 return true;
             }
@@ -582,7 +508,7 @@ bool Delete_dead_nodes(TreeNode_t *node)
                 return Delete_dead_nodes(node->left) || Delete_dead_nodes(node->right);
             }
         }
-        else if ((node->right->data.type == NUM) && (node->right->data.value == 0))
+        else if ((node->right->data.type == NUMBER) && (node->right->data.value == 0))
         {
             if (node->data.value == '*')
             {
@@ -590,7 +516,7 @@ bool Delete_dead_nodes(TreeNode_t *node)
                 TreeNode_delete (node->left);
                 node->left = nullptr;
                 node->right = nullptr;
-                node->data.type = NUM;
+                node->data.type = NUMBER;
                 node->data.value = 0;
                 return true;
             }
@@ -600,7 +526,7 @@ bool Delete_dead_nodes(TreeNode_t *node)
                 TreeNode_delete (node->left);
                 node->left = nullptr;
                 node->right = nullptr;
-                node->data.type = NUM;
+                node->data.type = NUMBER;
                 node->data.value = 1;
                 return true;
             }
@@ -621,7 +547,7 @@ bool Delete_dead_nodes(TreeNode_t *node)
                 return Delete_dead_nodes(node->left) || Delete_dead_nodes(node->right);
             }
         }
-        else if ((node->right->data.type == NUM) && (node->right->data.value == 1))
+        else if ((node->right->data.type == NUMBER) && (node->right->data.value == 1))
         {
             if (node->data.value == '*' || node->data.value == '/' || node->data.value == '^')
             {
@@ -640,7 +566,7 @@ bool Delete_dead_nodes(TreeNode_t *node)
                 return Delete_dead_nodes(node->left) || Delete_dead_nodes(node->right);
             }
         }
-        else if ((node->left->data.type == NUM) && (node->left->data.value == 1))
+        else if ((node->left->data.type == NUMBER) && (node->left->data.value == 1))
         {
             if (node->data.value == '*')
             {
@@ -661,7 +587,7 @@ bool Delete_dead_nodes(TreeNode_t *node)
                 node->left = nullptr;
                 node->right = nullptr;
                 node->data.value = 1;
-                node->data.type = NUM;
+                node->data.type = NUMBER;
                 return true;
             }
             else
@@ -671,7 +597,7 @@ bool Delete_dead_nodes(TreeNode_t *node)
         }
         else if (TreeNode_compare(node->left, node->right))
         {
-            elem_t two  = {2, NUM};
+            TreeData_t two  = {2, NUMBER};
             if (node->data.value == '+')
             {
                 node->data.value = '*';
@@ -692,7 +618,7 @@ bool Delete_dead_nodes(TreeNode_t *node)
                 node->left = nullptr;
                 TreeNode_delete (node->right);
                 node->right = nullptr;
-                node->data.type = NUM;
+                node->data.type = NUMBER;
                 node->data.value = 0;
                 return true;
             }
@@ -702,7 +628,7 @@ bool Delete_dead_nodes(TreeNode_t *node)
                 node->left = nullptr;
                 TreeNode_delete (node->right);
                 node->right = nullptr;
-                node->data.type = NUM;
+                node->data.type = NUMBER;
                 node->data.value = 1;
                 return true;
             }
@@ -719,17 +645,14 @@ bool Delete_dead_nodes(TreeNode_t *node)
     return false;
 }
 
-bool Optimize(Tree_t *tree, FILE *out_file)
+bool Optimize(TreeNode_t *node)
 {
-    if (tree == nullptr || out_file == nullptr) return true;
+    if (node == nullptr) return true;
     bool res1 = false, res2 = false;
     do
     {
-        res1 = Fold_consts (tree->root); 
-        res2 = Delete_dead_nodes (tree->root);
-        fprintf (out_file, "\t\t");
-        Tree_print_tex (tree, out_file); 
-        fprintf (out_file, "\\\\\n");
+        res1 = Fold_consts (node); 
+        res2 = Delete_dead_nodes (node);
     }
     while (res1 || res2);
     return true;

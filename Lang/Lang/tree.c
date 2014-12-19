@@ -67,7 +67,7 @@ bool TreeNode_add(Tree_t *tree, TreeNode_t *new_left_node, TreeNode_t *new_right
 bool TreeNode_print_prefix(TreeNode_t *node, FILE *file)
 {
     if (node == nullptr || file == nullptr) return false;
-    if (node->data.type == OPERATOR || node->data.type == VARIABLE)
+    if (node->data.type == L_OPERATOR || node->data.type == A_OPERATOR || node->data.type == VARIABLE)
     {
         fprintf (file, "(%c" , node->data.value);
     }
@@ -82,11 +82,17 @@ bool TreeNode_print_prefix(TreeNode_t *node, FILE *file)
         #include "funcs.h"
         #undef FUNC
     }
+    else if (node->data.type == W_OPERATOR)
+    {
+        #define W_OPER(name, str, num)                                    \
+            if (num == (node->data.value)) fprintf (file, "(%s" , str);
+        #include "w_opers.h"
+        #undef W_OPER
+    }
     else if (node->data.type == CONTROL)
     {
         fprintf (file, "(%c" , node->data.value);
     }
-    
     if (node->left != nullptr) TreeNode_print_prefix (node->left, file);
     if (node->right != nullptr) TreeNode_print_prefix (node->right, file);
     fprintf (file, ")");
@@ -100,7 +106,7 @@ bool TreeNode_print_infix(TreeNode_t *node, FILE *file)
     fprintf (file, "(");
     if (node->left != nullptr) TreeNode_print_infix (node->left, file);
 
-    if (node->data.type == OPERATOR || node->data.type == VARIABLE)
+    if (node->data.type == L_OPERATOR || node->data.type == A_OPERATOR || node->data.type == VARIABLE)
     {
         fprintf (file, "%c" , node->data.value);
     }
@@ -114,6 +120,13 @@ bool TreeNode_print_infix(TreeNode_t *node, FILE *file)
             if (num == (node->data.value)) fprintf (file, "%s" , str);
         #include "funcs.h"
         #undef FUNC
+    }
+    else if (node->data.type == W_OPERATOR)
+    {
+        #define W_OPER(name, str, num)                                    \
+            if (num == (node->data.value)) fprintf (file, "%s" , str);
+        #include "w_opers.h"
+        #undef W_OPER
     }
     else if (node->data.type == CONTROL)
     {

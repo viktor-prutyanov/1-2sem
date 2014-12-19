@@ -1,7 +1,7 @@
 /**
 *   Lexical analyzer
 *
-*   @date 11.2014
+*   @date 12.2014
 *
 *   @copyright GNU GPL v2.0
 *
@@ -14,11 +14,13 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#define MAX_FUNC_NAME_LEN 8
+
 char *Cur_sym;
 
 ScanResult_t GetNextToken(Token_t *token)
 {
-    char func_name[8] = {};
+    char str_name[MAX_FUNC_NAME_LEN] = {};
     if (isalpha (*Cur_sym))
     {
         if (isalpha(*(Cur_sym + 1)))
@@ -26,21 +28,23 @@ ScanResult_t GetNextToken(Token_t *token)
             int i = 0;
             while (*Cur_sym != '(' && *Cur_sym != ' ')
             {
-                func_name[i] = *Cur_sym++;
+                str_name[i] = *Cur_sym++;
                 i++;
             }
             if (false)
             {
                 
             }
-            #define FUNC(name, str, num) else if (strcmp(str, func_name) == 0) {token->value = num;}
+            #define FUNC(name, str, num) else if (strcmp(str, str_name) == 0) {token->value = num; token->type = FUNCTION;}
             #include "funcs.h"
             #undef FUNC
+            #define W_OPER(name, str, num) else if (strcmp(str, str_name) == 0) {token->value = num; token->type = W_OPERATOR;}
+            #include "w_opers.h"
+            #undef W_OPER
             else
             {
                 return ERROR;
             }
-            token->type = FUNCTION;
             return OK;
         }
         else
@@ -76,22 +80,22 @@ ScanResult_t GetNextToken(Token_t *token)
     }
     else if (strchr ("+-/*^", *Cur_sym) != nullptr)
     {
-        token->type = OPERATOR;
+        token->type = A_OPERATOR;
         token->value = *Cur_sym++;
         return OK;
     }
     else if (strchr ("<>=!", *Cur_sym) != nullptr) 
     {
-        token->type = OPERATOR;
+        token->type = L_OPERATOR;
         if (*(Cur_sym + 1) == '=')
         {
             if (false)
             {
 
             }
-            #define OPER(name, str, num) else if (str[0] == *Cur_sym) {token->value = num;}
-            #include "opers.h"
-            #undef OPER
+            #define L_OPER(name, str, num) else if (str[0] == *Cur_sym) {token->value = num;}
+            #include "l_opers.h"
+            #undef L_OPER
             else
             {
                 return ERROR;

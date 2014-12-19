@@ -1,7 +1,7 @@
 /**
 *   Lexical analyzer
 *
-*   @date 11.2014
+*   @date 12.2014
 *
 *   @copyright GNU GPL v2.0
 *
@@ -10,12 +10,14 @@
 
 typedef enum TokenType_t
 {
-    NO_TYPE = -1,
-    CONTROL = 0,
-    OPERATOR = 1,
-    NUMBER = 2,
-    VARIABLE = 3,
-    FUNCTION = 4
+    NO_TYPE =      -1,
+    CONTROL =       0,
+    A_OPERATOR =    1,
+    NUMBER =        2,
+    VARIABLE =      3,
+    FUNCTION =      4,
+    L_OPERATOR =    5,
+    W_OPERATOR =    6
 };
 
 typedef struct Token_t

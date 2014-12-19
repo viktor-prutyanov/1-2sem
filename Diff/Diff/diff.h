@@ -1,5 +1,5 @@
 /**
-*   Expression calculator
+*   Diffirentiator
 *
 *   @date 11.2014
 *

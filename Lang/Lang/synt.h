@@ -21,4 +21,5 @@ int GetS(TreeNode_t **node);
 int GetB(TreeNode_t **node);
 int GetQ(TreeNode_t **node);
 int GetF(TreeNode_t **node);
-int GetA(TreeNode_t **node);
+int GetBE(TreeNode_t **node);
+int GetW(TreeNode_t **node);

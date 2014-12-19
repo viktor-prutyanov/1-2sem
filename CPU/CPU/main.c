@@ -65,7 +65,6 @@ int main(int argc, char *argv[])
     while (!(cpu->is_end))
     {
         CPU_run_next(cpu);
-        //system ("pause");
     }
 
     CPU_dtor (cpu);
