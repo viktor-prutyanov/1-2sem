@@ -1,0 +1,57 @@
+\documentclass[12pt]{article}
+\usepackage{ucs}
+\usepackage[utf8x]{inputenc}
+\usepackage[russian]{babel}
+\title{\LaTeX}
+\date{}
+\author{}
+\begin{document}
+	\begin{center}
+		\Large\textbf{Taking the derivative of a function}
+	\end{center}
+	Let $f(x) = $
+	\begin{math}
+		\exp{(1+1/x^2)}+x*\ln{(x)}\\
+	\end{math}
+	\newline
+	\newline
+	Next, we will take the derivative $f^{'}_x(x)$:\newline
+	\newline
+	Step-by-step solution:\newline
+	\begin{math}
+		(\exp{(1+1/x^2)}+x*\ln{(x)})^{'}=(x*\ln{(x)})^{'}+(\exp{(1+1/x^2)})^{'}\\
+(x*(\ln{(x)}))^{'}=x^{'}*(\ln{(x)})+x*(\ln{(x)})^{'}\\
+\ln^{'}{x}=1/x*x^{'}\\
+\exp^{'}{(1+1/x^2)}=\exp{(1+1/x^2)}*(1+1/x^2)^{'}\\
+(1+1/x^2)^{'}=(1/x^2)^{'}+1^{'}\\
+(1/(x^2))^{'}=(1^{'}*(x^2)-1*(x^2)^{'})/(x^2)^2\\
+(x^{2})^{'}=x^{2-1}*(2*x^{'}+x*\ln{x}*2^{'})\\
+	\end{math}
+	\newline
+	The derivative is:\newline
+	\begin{math}
+		\exp{(1+1/x^2)}*(0+((0*x^2)-(x^{2-1}*(1*2+x*0*\ln{(x)})*1))/(x^2)^2)+1*\ln{(x)}+1/x*1*x\\
+	\end{math}
+	\newline
+	But you can see many unnecessary actions.
+	\newline
+	Let us make some simplifications:\newline
+	\begin{math}
+		\exp{(1+1/x^2)}*((0*x^2)-(x^1*(1*2+x*0*\ln{(x)})*1))/(x^2)^2+1*\ln{(x)}+1/x*1*x\\
+		\exp{(1+1/x^2)}*(0-(x^1*(2+x*0*\ln{(x)})*1))/(x^2)^2+1*\ln{(x)}+1/x*1*x\\
+		\exp{(1+1/x^2)}*-1*x^1*(2+x*0*\ln{(x)})*1/(x^2)^2+1*\ln{(x)}+1/x*1*x\\
+		\exp{(1+1/x^2)}*-1*x^1*(2+x*0*\ln{(x)})/(x^2)^2+1*\ln{(x)}+1/x*1*x\\
+		\exp{(1+1/x^2)}*-1*x*(2+x*0*\ln{(x)})/(x^2)^2+1*\ln{(x)}+1/x*1*x\\
+		\exp{(1+1/x^2)}*-1*x*(2+x*0)/(x^2)^2+1*\ln{(x)}+1/x*1*x\\
+		\exp{(1+1/x^2)}*-1*x*(2+0)/(x^2)^2+1*\ln{(x)}+1/x*1*x\\
+		\exp{(1+1/x^2)}*-1*x*2/(x^2)^2+\ln{(x)}+1/x*1*x\\
+		\exp{(1+1/x^2)}*-1*x*2/(x^2)^2+\ln{(x)}+1/x*x\\
+		\exp{(1+1/x^2)}*-1*x*2/(x^2)^2+\ln{(x)}+x/x\\
+		\exp{(1+1/x^2)}*-1*x*2/(x^2)^2+\ln{(x)}+1\\
+		\exp{(1+1/x^2)}*-1*x*2/(x^2)^2+\ln{(x)}+1\\
+	\end{math}
+	\newline
+	In this way:\newline
+		\framebox{$f^{'}_x(x) = \exp{(1+1/x^2)}*-1*x*2/(x^2)^2+\ln{(x)}+1$}\\	\newline
+	Further simplifications reader can hold their own.\newline
+\end{document}

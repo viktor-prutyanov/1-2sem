@@ -126,6 +126,7 @@ int main()
         fprintf (out_file, TEX_END);
 
         Tree_print_prefix (diff_tree, stdout);
+        printf ("\n\n");
 
         Tree_dtor (diff_tree);
         free (diff_tree);

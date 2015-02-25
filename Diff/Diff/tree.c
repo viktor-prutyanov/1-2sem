@@ -155,6 +155,7 @@ bool TreeNode_print_for_human(TreeNode_t *node, FILE *file, Tree_t *tree)
 bool TreeNode_print_tex(TreeNode_t *node, FILE *file, Tree_t *tree, const char *bracket1, const char *bracket2, bool is_by_func)
 {
     if (node == nullptr || file == nullptr) return false;
+
     if (!TreeNode_is_leaf (node) && node != tree->root || is_by_func)
     {
         fprintf (file, bracket1);

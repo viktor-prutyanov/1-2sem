@@ -14,16 +14,21 @@ push bx
 pow
 sub
 pop dx
-:l1
 push 0
 push dx
-jb _l2
+jb _l1
 push 2
 push 1
 div
 push dx
 pow
 pop dx
+push 0
+pop cx
+:l1
+push 2
+push cx
+ja _l2
 push ax
 push 2
 mul
@@ -44,6 +49,11 @@ mul
 sub
 div
 out
+push cx
+push 1
+add
+pop cx
 jmp _l1
 :l2
+:l3
 end
