@@ -19,13 +19,13 @@ org 0x100
 
     jmp end
 
-    m_zero:
+m_zero:
     mov dx, zero
     mov ah, 0x09
     int 0x21
     ;the zero response printed
 
-    end:
+end:
     mov ax, 0x4c00
     int 0x21
 SECTION .data

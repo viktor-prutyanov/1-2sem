@@ -7,7 +7,7 @@ org 0x100
     mov edi, key
     xor cx, cx
 
-    lp:
+lp:
     mov ah, 0x01
     int 0x21    ;char now in AL
 
@@ -22,27 +22,27 @@ org 0x100
     xor al, [edi]
     jz next
     mov cx, 0xDEAD
-    next:
+next:
     inc edi
-    idle:
+idle:
     jmp lp
 
-    check:
+check:
     xor cx, 0xDEAD
     jz ad
     xor [edi], byte '$'
     jz ok
 
-    ad:
+ad:
     mov ah, 0x9
     mov dx, ad_msg
     int 0x21
 
-    end:
+end:
     mov ax, 0x4c00
     int 0x21
-
-    ok: 
+    
+ok: 
     mov ah, 0x9
     mov dx, ok_msg
     int 0x21

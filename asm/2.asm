@@ -34,24 +34,24 @@ org 0x100
     cmp bl, 0x01
     je m_even
 
-    m_odd: 
+m_odd: 
     mov dx, odd
     mov ah, 0x09
     int 0x21
     ;the odd response printed
     jmp m_end
 
-    m_even:
+m_even:
     mov dx, even
     mov ah, 0x09
     int 0x21
     ;the even response printed
 
-    m_end:
+m_end:
     mov ax, 0x4c00
     int 0x21
 
-    m_no_digit:
+m_no_digit:
     mov dx, no_digit
     mov ah, 0x09
     int 0x21
