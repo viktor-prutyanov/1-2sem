@@ -1,5 +1,5 @@
 ;   2,8,10,16 numeral systems translator
-;   02.2015
+;   02.2015-03.2015
 ;   GNU GPL v2.0
 ;   Viktor Prutyanov mailto:vitteran@gmail.com
 
@@ -74,14 +74,14 @@ output:
 bin2_m:
     Print   CRLF
     mov     ax, bx
-    mov     bx, 0x0A
-    call    all_write
+    mov     cl, 0x01
+    call    binx_write
     jmp     end
 oct2_m:
     Print   CRLF
     mov     ax, bx
-    mov     bx, 0x08
-    call    all_write
+    mov     cl, 0x03
+    call    binx_write
     jmp     end
 dec2_m:
     Print   CRLF
@@ -92,8 +92,8 @@ dec2_m:
 hex2_m:
     Print   CRLF
     mov     ax, bx
-    mov     bx, 0x10
-    call    all_write
+    mov     cl, 0x04
+    call    binx_write
 
     end:
     Exit    0
@@ -123,7 +123,7 @@ m2:
     ret
 
 ;Read number from stdin in 2^n numeral system
-;In: DX <- log2(n)
+;In: DX <- n
 ;Dstr: AX, CX
 ;Out: BX
 binx_read:
@@ -185,7 +185,7 @@ dec_read_loop2:
     jne     dec_read_loop2
     ret
 
-;Write number to stdout in all numeral systems
+;Write number to stdout in all (up to 36) numeral systems
 ;In: AX <- number, BX <- system
 ;Dstr: CX, DX
 ;Out: None
@@ -212,6 +212,41 @@ digit2:
     mov     ah, 0x02
     int     0x21
     loop    all_write_loop2
+    ret
+
+;Write number to stdout in 2^n numeral systems
+;In: AX <- number, CL <- n
+;Dstr: DX, BX
+;Out: None
+binx_write:
+    xor     dx, dx
+    xor     bx, bx
+
+binx_write_loop1:
+    mov     dx, 0x01
+    shl     dx, cl
+    sub     dx, 0x01         ;now BX is 2^CL - 1 = 2^n-1 
+    and     dx, ax           ;remainer AX/2^n is in BX
+    shr     ax, cl           ;AX = AX/2^n
+
+    add     dx, '0'
+    push    dx
+    inc     bx
+    or      ax, 0x00
+    jz      binx_write_pre_loop2
+    jmp     binx_write_loop1
+
+binx_write_pre_loop2:
+    mov     cx, bx
+binx_write_loop2:
+    pop     dx
+    cmp     dx, '9' + 1             ;Check letter or not,
+    jb      digit3                  ;then jump 
+    add     dx, 'a' - '0' - 10      ;or make it letter
+digit3:
+    mov     ah, 0x02
+    int     0x21
+    loop    binx_write_loop2
     ret
 
 SECTION .data
