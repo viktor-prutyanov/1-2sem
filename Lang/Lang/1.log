@@ -1,0 +1,113 @@
+Lexical analysis:
+Total 202 symbols.
+Total 105 tokens.
+ 0) type = 0 value = 123 
+ 1) type = 4 value =  10 
+ 2) type = 0 value =  40 
+ 3) type = 3 value =  97 
+ 4) type = 0 value =  41 
+ 5) type = 0 value =  59 
+ 6) type = 4 value =  10 
+ 7) type = 0 value =  40 
+ 8) type = 3 value =  98 
+ 9) type = 0 value =  41 
+10) type = 0 value =  59 
+11) type = 4 value =  10 
+12) type = 0 value =  40 
+13) type = 3 value =  99 
+14) type = 0 value =  41 
+15) type = 0 value =  59 
+16) type = 3 value = 100 
+17) type = 5 value =  61 
+18) type = 3 value =  98 
+19) type = 1 value =  94 
+20) type = 2 value =   2 
+21) type = 1 value =  45 
+22) type = 2 value =   4 
+23) type = 1 value =  42 
+24) type = 3 value =  97 
+25) type = 1 value =  42 
+26) type = 3 value =  99 
+27) type = 0 value =  59 
+28) type = 6 value =   1 
+29) type = 0 value =  40 
+30) type = 3 value = 100 
+31) type = 5 value =   2 
+32) type = 2 value =   0 
+33) type = 0 value =  41 
+34) type = 0 value = 123 
+35) type = 3 value = 100 
+36) type = 5 value =  61 
+37) type = 3 value = 100 
+38) type = 1 value =  94 
+39) type = 0 value =  40 
+40) type = 2 value =   1 
+41) type = 1 value =  47 
+42) type = 2 value =   2 
+43) type = 0 value =  41 
+44) type = 0 value =  59 
+45) type = 3 value =  99 
+46) type = 5 value =  61 
+47) type = 2 value =   0 
+48) type = 0 value =  59 
+49) type = 6 value =   2 
+50) type = 0 value =  40 
+51) type = 3 value =  99 
+52) type = 5 value =   1 
+53) type = 2 value =   2 
+54) type = 0 value =  41 
+55) type = 0 value = 123 
+56) type = 4 value =   9 
+57) type = 0 value =  40 
+58) type = 0 value =  40 
+59) type = 3 value =  98 
+60) type = 1 value =  42 
+61) type = 0 value =  40 
+62) type = 1 value =  45 
+63) type = 2 value =   1 
+64) type = 0 value =  41 
+65) type = 1 value =  43 
+66) type = 3 value = 100 
+67) type = 0 value =  41 
+68) type = 1 value =  47 
+69) type = 0 value =  40 
+70) type = 2 value =   2 
+71) type = 1 value =  42 
+72) type = 3 value =  97 
+73) type = 0 value =  41 
+74) type = 0 value =  41 
+75) type = 0 value =  59 
+76) type = 4 value =   9 
+77) type = 0 value =  40 
+78) type = 0 value =  40 
+79) type = 3 value =  98 
+80) type = 1 value =  42 
+81) type = 0 value =  40 
+82) type = 1 value =  45 
+83) type = 2 value =   1 
+84) type = 0 value =  41 
+85) type = 1 value =  45 
+86) type = 3 value = 100 
+87) type = 0 value =  41 
+88) type = 1 value =  47 
+89) type = 0 value =  40 
+90) type = 2 value =   2 
+91) type = 1 value =  42 
+92) type = 3 value =  97 
+93) type = 0 value =  41 
+94) type = 0 value =  41 
+95) type = 0 value =  59 
+96) type = 4 value =   7 
+97) type = 0 value =  40 
+98) type = 3 value =  99 
+99) type = 0 value =  41 
+100) type = 0 value =  59 
+101) type = 0 value = 125 
+102) type = 0 value = 125 
+103) type = 0 value = 125 
+104) type = 0 value =   0 
+
+Syntax analysis:
+(~(scan(a))(~(scan(b))(~(scan(c))(~(=(d)(-(^(b)(2))(*(4)(*(a)(c)))))(~(if((d)(0))(~(=(d)(^(d)(/(1)(2))))(~(=(c)(0))(~(while((c)(2))(~(print(/(+(*(b)(-1))(d))(*(2)(a))))(~(print(/(-(*(b)(-1))(d))(*(2)(a))))(~(inc(c)))))))))))))))
+((scan(a))~((scan(b))~((scan(c))~(((d)=(((b)^(2))-((4)*((a)*(c)))))~((((d)(0))if(((d)=((d)^((1)/(2))))~(((c)=(0))~((((c)(2))while((print((((b)*(-1))+(d))/((2)*(a))))~((print((((b)*(-1))-(d))/((2)*(a))))~((inc(c))~))))~))))~)))))
+Generation successfully completed.

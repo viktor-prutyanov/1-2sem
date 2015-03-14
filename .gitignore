@@ -5,6 +5,7 @@
 *.opensdf
 *.psess
 *.vsp
+*.ini
 *.vspx
 Debug
 Release
