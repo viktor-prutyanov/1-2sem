@@ -23,6 +23,8 @@
 
 SECTION .text
 org 0x100 
+    xor     ebp, ebp
+
     Print   plz2
     mov     ah, 0x01
     int     0x21        ;char is in AL
@@ -41,19 +43,22 @@ org 0x100
     Exit    1
 
 bin1_m:
-    mov     dl, 0x01
+    push    0x01
     call    binx_read
+    pop     dx
     jmp     output
 oct1_m:
-    mov     dl, 0x03
+    push    0x03
     call    binx_read
+    pop     dx
     jmp     output
 dec1_m:
     call    dec_read
     jmp     output
 hex1_m:
-    mov     dl, 0x04
+    push    0x04
     call    binx_read
+    pop     dx
 
 output:
     Print   plz2
@@ -73,41 +78,47 @@ output:
 
 bin2_m:
     Print   CRLF
-    mov     ax, bx
-    mov     cl, 0x01
+    push    bx
+    push    0x01
     call    binx_write
     jmp     end
 oct2_m:
     Print   CRLF
-    mov     ax, bx
-    mov     cl, 0x03
+    push    bx
+    push    0x03
     call    binx_write
     jmp     end
 dec2_m:
     Print   CRLF
-    mov     ax, bx
-    mov     bx, 0x0A
+    push    bx
+    push    0x0A
     call    all_write
     jmp     end
 hex2_m:
     Print   CRLF
-    mov     ax, bx
-    mov     cl, 0x04
+    push    bx
+    push    0x04
     call    binx_write
 
     end:
+    pop     bx
+    pop     bx
     Exit    0
 
 ;#########################################################
 ;# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 ;#########################################################
 
-;DX:AX = AX * 10^CX
-;In: AX <- multiplier, CX <- degree
+;AX = arg1 * 10^arg2
+;In: arg1 <- multiplier, arg2 <- degree
 ;Dstr: None
-;Out: DX:AX
+;Out: AX
 pow10:
-    push    cx
+    push    ebp 
+    mov     ebp, esp
+    mov     ax, [bp + 8] ;arg1
+    mov     cx, [bp + 6] ;arg2
+
     push    bx
     push    dx
     mov     bx, 0x0A
@@ -119,14 +130,19 @@ m1:
 m2:
     pop     dx
     pop     bx
-    pop     cx
+
+    pop     ebp     
     ret
 
 ;Read number from stdin in 2^n numeral system
-;In: DX <- n
+;In: arg1 <- n
 ;Dstr: AX, CX
 ;Out: BX
 binx_read:
+    push    ebp 
+    mov     ebp, esp
+    mov     dx, [ebp + 6] ;arg1
+
     xor     bx, bx
     xor     cx, cx
 
@@ -154,6 +170,8 @@ binx_read_loop2:
     add     cl, dl
     cmp     ch, cl
     jne     binx_read_loop2
+
+    pop     ebp
     ret
 
 ;Read number from stdin in 10 numeral system
@@ -161,6 +179,9 @@ binx_read_loop2:
 ;Dstr: AX, CX, BX
 ;Out: BX
 dec_read:
+    push    ebp 
+    mov     ebp, esp
+
     xor     bx, bx
     xor     cx, cx
     xor     dx, dx
@@ -177,19 +198,29 @@ dec_read_loop1:
     jmp     dec_read_loop1
 
 dec_read_loop2:
-    pop     ax
+    ;ax wasn't pushed because it is in stack already
+    push    cx          
     call    pow10
+    pop     cx
     add     bx, ax
+    pop     ax
     inc     cx
     cmp     cx, dx
     jne     dec_read_loop2
+
+    pop     ebp
     ret
 
 ;Write number to stdout in all (up to 36) numeral systems
-;In: AX <- number, BX <- system
+;In: arg1 <- number, arg2 <- system
 ;Dstr: CX, DX
 ;Out: None
 all_write:
+    push    ebp 
+    mov     ebp, esp
+    mov     ax, [ebp + 8]   ;arg1
+    mov     bx, [ebp + 6]   ;arg2
+
     xor     dx, dx
     xor     cx, cx
 
@@ -212,13 +243,20 @@ digit2:
     mov     ah, 0x02
     int     0x21
     loop    all_write_loop2
+
+    pop     ebp
     ret
 
 ;Write number to stdout in 2^n numeral systems
-;In: AX <- number, CL <- n
+;In: arg1 <- number, arg2 <- n
 ;Dstr: DX, BX
 ;Out: None
 binx_write:
+    push    ebp
+    mov     ebp, esp
+    mov     ax, [ebp + 8]   ;arg1
+    mov     cx, [ebp + 6]   ;arg2
+
     xor     dx, dx
     xor     bx, bx
 
@@ -247,6 +285,8 @@ digit3:
     mov     ah, 0x02
     int     0x21
     loop    binx_write_loop2
+
+    pop     ebp
     ret
 
 SECTION .data
