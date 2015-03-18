@@ -1,3 +1,6 @@
+*.o
+*.out
+*.com
 *.sdf
 *.suo
 *.vcxproj.filters
