@@ -281,15 +281,8 @@ next_digit_d:
     jmp         next
 
 section     .data
-<<<<<<< HEAD
     samplefmt0  db "%b 0123456789 %c=%d%% %s 0123456789=%s Lorem ipsum %s-%o So much 0x%x", NULL
     samplestr1  db "LOL", NULL
     samplestr2  db "LOL2", NULL
     samplestr3  db "LOL3", NULL
     buffer      times BUF_LEN db 0x00
-=======
-    samplefmt0  db "0123456789%s0123456789=%s Lorem ipsum %s", 0x00
-    samplestr1  db "LOL", 0x00
-    samplestr2  db "LOL2", 0x00
-    samplestr3  db "LOL3", 0x00
->>>>>>> c7eec3bbdf32c24fd94af26e835a9274032ef860
