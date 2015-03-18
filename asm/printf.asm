@@ -1,5 +1,5 @@
 ;   Custom printf realization
-;   003.2015
+;   03.2015
 ;   GNU GPL v2.0
 ;   Viktor Prutyanov mailto:vitteran@gmail.com
 
