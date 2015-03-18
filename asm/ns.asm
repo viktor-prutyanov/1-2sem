@@ -263,8 +263,8 @@ binx_write:
 binx_write_loop1:
     mov     dx, 0x01
     shl     dx, cl
-    sub     dx, 0x01         ;now BX is 2^CL - 1 = 2^n-1 
-    and     dx, ax           ;remainer AX/2^n is in BX
+    sub     dx, 0x01         ;now DX is 2^CL - 1 = 2^n-1 
+    and     dx, ax           ;remainder AX/2^n is in DX
     shr     ax, cl           ;AX = AX/2^n
 
     add     dx, '0'

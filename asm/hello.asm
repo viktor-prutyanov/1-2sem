@@ -9,10 +9,11 @@ _start:                                         ;tell linker entry point
     mov     eax,4                               ;system call number (sys_write)
     int     0x80                                ;call kernel
 
-    mov     rax,1                               ;system call number (sys_exit)
-    int     0x80                                ;call kernel
+    mov     edi,0
+    mov     eax,0x3c                            ;system call number (sys_exit)
+    syscall                                     ;call kernel
 
 section     .data
 
-msg     db  'Hello, lalka!',0xa                 ;our dear string
+msg     db  'Hello, world!',0xa                 ;our dear string
 len     equ $ - msg                             ;length of our dear string
