@@ -43,7 +43,7 @@ bool Stack_push(Stack_t *stack, element_t value)
     if (!Stack_ok (stack)) return false;
     if (Stack_full (stack)) 
     {
-        stack->data = (element_t*)realloc ((void *)(stack->data), (stack->size + 1) * sizeof (element_t));
+        stack->data = (element_t *)realloc ((void *)(stack->data), (stack->size + 1) * sizeof (element_t));
         if (!Stack_ok (stack)) return false;
         if (stack->size != SIZE_MAX)
         {

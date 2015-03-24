@@ -24,7 +24,7 @@ DEF_CMD(JBE,        16, CPU_jbe(cpu, jump_to),                                  
 DEF_CMD(JZ,         17, CPU_jz (cpu, jump_to),                                              "jz",      1)
 DEF_CMD(JNZ,        18, CPU_jnz(cpu, jump_to),                                              "jnz",     1)
 
-DEF_CMD(MOV,        19, CPU_mov(arg1, *arg2),                                               "mov",     2)
+DEF_CMD(MOV,        19, CPU_mov(arg1, *arg2),                                               "mov",     2) 
 
 DEF_CMD(SWAP,       20, CPU_swap(cpu),                                                      "swap",    0)
 
@@ -34,10 +34,3 @@ DEF_CMD(RET,        22, CPU_ret(cpu),                                           
 DEF_CMD(DUP,        23, CPU_dup(cpu),                                                       "dup",     0)
 
 DEF_CMD(IN,         24, CPU_in(cpu),                                                        "in",      0)
-
-DEF_CMD(SIN,        25, CPU_math_func(cpu->stack, sin),                                     "sin",     0)
-DEF_CMD(COS,        26, CPU_math_func(cpu->stack, cos),                                     "cos",     0)
-DEF_CMD(TAN,        27, CPU_math_func(cpu->stack, tan),                                     "tan",     0)
-DEF_CMD(EXP,        28, CPU_math_func(cpu->stack, exp),                                     "exp",     0)
-DEF_CMD(LN,         29, CPU_math_func(cpu->stack, log),                                     "ln",      0)
-DEF_CMD(POW,        30, CPU_math_func2(cpu->stack, pow),                                    "pow",     0)

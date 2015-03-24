@@ -106,7 +106,3 @@ bool    CPU_ret         (CPU_t *cpu);
 bool    CPU_dup         (CPU_t *cpu);
 
 bool    CPU_in          (CPU_t *cpu);
-
-bool CPU_math_func      (Stack_t *stack, double (*math_func)(double arg));
-
-bool CPU_math_func2     (Stack_t *stack, double (*math_func)(double arg1, double arg2));

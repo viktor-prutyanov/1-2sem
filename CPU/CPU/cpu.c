@@ -12,7 +12,6 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include "cpu.h"
-#include "math.h"
 
 #define ARG1 ((cpu->commands[cpu->ip]).arg1)
 #define ARG2 ((cpu->commands[cpu->ip]).arg2)
@@ -66,7 +65,6 @@ bool CPU_load(CPU_t *cpu, size_t values_size, size_t commands_size, FILE *in_fil
     fread ((void *)(cpu->commands), sizeof(cmd_t), cpu->commands_size, in_file);
     return true;
 }
-
 
 bool CPU_dump(CPU_t *cpu)
 {
@@ -257,7 +255,7 @@ bool CPU_sub(Stack_t *stack)
         return false;
     }
 
-    return Stack_push (stack, arg1 - arg2);
+    return Stack_push (stack, arg2 - arg1);
 }
 
 bool CPU_div(Stack_t *stack)
@@ -558,31 +556,4 @@ bool CPU_in(CPU_t *cpu)
     printf ("<-");
     scanf ("%lf", &val);
     return Stack_push (cpu->stack, val);
-}
-
-bool CPU_math_func(Stack_t *stack, double (*math_func)(double arg))
-{
-    bool success = false;
-    double arg1 = Stack_pop (stack, &success);
-    if (!success) return false;
-    return Stack_push (stack, math_func (arg1));
-}
-
-bool CPU_math_func2(Stack_t *stack, double (*math_func2)(double arg1, double arg2))
-{
-    bool success = false;
-    
-    double arg1 = Stack_pop (stack, &success);
-    double arg2 = 0;
-    if (success) 
-    {
-        arg2 = Stack_pop (stack, &success);
-        if (!success) return false;
-    }
-    else
-    {
-        return false;
-
-    }
-    return Stack_push (stack, math_func2(arg1, arg2));
 }
