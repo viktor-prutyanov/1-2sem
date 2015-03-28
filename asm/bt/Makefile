@@ -1,8 +1,8 @@
 all:
-	@g++ -std=gnu++11 -g bt.cpp -Wparentheses -Wunused-value -Wformat && ./a.out && echo ''
+	@g++ -std=gnu++11 -g bt.cpp -Wparentheses -Wunused-value -Wformat -o bt && ./bt && echo ''
 
 build:
-	@g++ -std=gnu++11 -g bt.cpp -Wparentheses -Wunused-value -Wformat && echo ''
+	@g++ -std=gnu++11 -g bt.cpp -Wparentheses -Wunused-value -Wformat -o bt && echo ''
 
 clean:
-	@rm -rf *.o a.out
+	@rm -rf *.o bt
