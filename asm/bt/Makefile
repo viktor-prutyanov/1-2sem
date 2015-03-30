@@ -4,5 +4,8 @@ all:
 build:
 	@g++ -std=gnu++11 -g bt.cpp -Wparentheses -Wunused-value -Wformat -o bt && echo ''
 
+preprocess:
+	@g++ -std=gnu++11 -E bt.cpp && echo ''
+
 clean:
 	@rm -rf *.o bt

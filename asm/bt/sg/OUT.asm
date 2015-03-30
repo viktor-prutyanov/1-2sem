@@ -5,9 +5,12 @@ bits 64
     push    rbp
     mov     rbp, rsp
     
+    dec     rbp
+    mov     byte [rbp], 0x0A
+
     xor     rdx, rdx            
     mov     rbx, 10
-    xor     rcx, rcx
+    mov     rcx, 1
 
 next_div:
     inc     rcx
