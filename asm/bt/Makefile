@@ -1,8 +1,8 @@
 all:
-	@g++ -std=gnu++11 -g bt.cpp -Wparentheses -Wunused-value -Wformat -o bt && ./bt && echo ''
+	@g++ -std=gnu++11 -g bt.cpp -Wall -Werror -o bt && ./bt -d && echo ''
 
 build:
-	@g++ -std=gnu++11 -g bt.cpp -Wparentheses -Wunused-value -Wformat -o bt && echo ''
+	@g++ -std=gnu++11 -g bt.cpp -Wall -Werror -o bt && echo ''
 
 preprocess:
 	@g++ -std=gnu++11 -E bt.cpp && echo ''

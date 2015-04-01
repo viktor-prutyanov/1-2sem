@@ -5,7 +5,6 @@
 #include <math.h>
 
 #include <vector>
-#include <stdexcept>
 
 #include <sys/mman.h>
 #include <signal.h>
@@ -41,8 +40,21 @@
 #define DUP                 "\x58\x50\x50"
 #define L_DUP               3
 
+#define SWAP                "\x58\x5b\x50\x53"
+#define L_SWAP              4
+
 #define JMP                 "\xe9" //+ dword (relative address) 
 #define L_JMP               5
+
+#define JB                  "\x58\x5b\x48\x39\xd8\x0f\x82" //+ dword (relative address)
+#define JAE                 "\x58\x5b\x48\x39\xd8\x0f\x83" //
+#define JE                  "\x58\x5b\x48\x39\xd8\x0f\x84" // 
+#define JNE                 "\x58\x5b\x48\x39\xd8\x0f\x85" //
+#define JBE                 "\x58\x5b\x48\x39\xd8\x0f\x86" //
+#define JA                  "\x58\x5b\x48\x39\xd8\x0f\x87" //
+
+#define L_JXX               11 
+
 
 struct Command 
 {
@@ -58,16 +70,20 @@ struct Jump
     uint8_t *ptr_from;
     Command *cmd_to;
     uint8_t *ptr_to;
+    bool conditional;
 };
+
+inline void jxx_case(Jump *&jump, Command *cmds, uint8_t*& buf_ptr, size_t i,
+    std::vector<Jump *>& jumps, bool conditional, size_t length);
 
 class Program
 {
 public:
-    Program(FILE *binFile);
+    Program(FILE *binFile, void (*sigSegv_action)(int, siginfo_t *, void *));
     ~Program();
 
-    void Dump();
-    void Translate();
+    void Dump(FILE *dumpFile);
+    Command* Translate();
     void Exec();
 
     const uint8_t *Buf();
@@ -84,12 +100,15 @@ private:
     uint8_t *buffer;
     uint8_t *buf;
     uint8_t *buf_ptr;
-    long PAGESIZE;
-    std::vector<Jump*> jumps;
+    long page_size;
+    std::vector<Jump *> jumps;
+    void (*sigsegv_action)(int, siginfo_t *, void *);
 };
 
-Program::Program(FILE *binFile) 
+Program::Program(FILE *binFile, void (*sigSegv_action)(int, siginfo_t *, void *)) 
 {
+    sigsegv_action = sigSegv_action;
+
     fread(header, 8, sizeof(char), binFile);
     fread(&val_num, 1, sizeof(uint32_t), binFile);
     fread(&cmd_num, 1, sizeof(uint32_t), binFile);
@@ -101,21 +120,19 @@ Program::Program(FILE *binFile)
     fread(vals, val_num, sizeof(double), binFile);
     fread(cmds, cmd_num, sizeof(Command), binFile);
 
-    PAGESIZE = sysconf(_SC_PAGESIZE);
-    buffer = new uint8_t[1024 + PAGESIZE - 1];
-    memset((void *)buffer, 0xc3, 1024 + PAGESIZE - 1);
-    buf = (uint8_t *)(((size_t) buffer + PAGESIZE-1) & ~(PAGESIZE-1));
+    page_size = sysconf(_SC_PAGESIZE);
+    buffer = new uint8_t[1024 + page_size - 1];
+    memset((void *)buffer, 0xc3, 1024 + page_size - 1);
+    buf = (uint8_t *)(((size_t) buffer + page_size - 1) & ~(page_size - 1));
     buf_ptr = buf;
     mprotect(buf, 1024, PROT_READ | PROT_WRITE | PROT_EXEC);
 }
 
-void Program::Translate()
+Command* Program::Translate()
 {
-    char err_str[] = "Unknown command 00";
     buf_ptr = buf;
     Jump *jump;
-
-    for (int i = 0; i < cmd_num; ++i)
+    for (size_t i = 0; i < cmd_num; ++i)
     {
         cmd_ptrs[i] = buf_ptr;
         switch(cmds[i].num)
@@ -171,68 +188,98 @@ void Program::Translate()
             memcpy(buf_ptr, OUT, L_OUT);
             buf_ptr += L_OUT;
             break;
-/*JUMP*/case 10:
-            jump = (Jump *)malloc(sizeof(Jump));
-            jump->ptr_from = buf_ptr;
-            //jump->ptr_to = nullptr;
-            jump->cmd_from = &(cmds[i]);
-            jump->cmd_to = &(cmds[cmds[i].arg1]);
-            jumps.push_back(jump);
+/*JMP*/case 10:
             memcpy(buf_ptr, JMP, 1);
-            buf_ptr += L_JMP;
+            jxx_case(jump, cmds, buf_ptr, i, jumps, false, L_JMP);
+            break;
+/*JE*/  case 11:
+            memcpy(buf_ptr, JE, 7);
+            jxx_case(jump, cmds, buf_ptr, i, jumps, true, L_JXX);
+            break;
+/*JNE*/ case 12:
+            memcpy(buf_ptr, JNE, 7);
+            jxx_case(jump, cmds, buf_ptr, i, jumps, true, L_JXX);
+            break;
+/*JA*/  case 13:
+            memcpy(buf_ptr, JA, 7);
+            jxx_case(jump, cmds, buf_ptr, i, jumps, true, L_JXX);
+            break;
+/*JAE*/ case 14:
+            memcpy(buf_ptr, JAE, 7);
+            jxx_case(jump, cmds, buf_ptr, i, jumps, true, L_JXX);
+            break;
+/*JB*/  case 15:
+            memcpy(buf_ptr, JB, 7);
+            jxx_case(jump, cmds, buf_ptr, i, jumps, true, L_JXX);
+            break;
+/*JBE*/ case 16:
+            memcpy(buf_ptr, JBE, 7);
+            jxx_case(jump, cmds, buf_ptr, i, jumps, true, L_JXX);
+            break;
+/*SWAP*/case 20:
+            memcpy(buf_ptr, SWAP, L_SWAP);
+            buf_ptr += L_SWAP;
             break;
 /*DUP*/ case 23:    
             memcpy(buf_ptr, DUP, L_DUP);
             buf_ptr += L_DUP;
             break;
         default: 
-            sprintf(err_str + strlen(err_str) - 2, "%.2d", cmds[i].num);
-            throw std::invalid_argument(err_str);
+            return cmds + i;
             break;
         }
     }
 
-    for (int i = 0; i < cmd_num; ++i)
+    for (long int i = 0; i < cmd_num; ++i)
     {
-        for (int j = 0; j < jumps.size(); ++j)
+        for (size_t j = 0; j < jumps.size(); ++j)
         {
             if (i == (jumps[j]->cmd_to) - cmds)
             {
                 jumps[j]->ptr_to = cmd_ptrs[i];
-                *((uint32_t *)(jumps[j]->ptr_from + 1)) = (uint32_t)(cmd_ptrs[i] - jumps[j]->ptr_from - 5);
+                if (jumps[j]->conditional)
+                {
+                    *((uint32_t *)(jumps[j]->ptr_from + 7)) = (uint32_t)(cmd_ptrs[i] - jumps[j]->ptr_from - 11);
+                }
+                else
+                {
+                    *((uint32_t *)(jumps[j]->ptr_from + 1)) = (uint32_t)(cmd_ptrs[i] - jumps[j]->ptr_from - 5);
+                }
             }
         }
     }
+
+    return nullptr;
 }
 
-void Program::Dump()
+void Program::Dump(FILE *dumpFile)
 {
-    printf("vals:\n");
-    for (uint32_t i = 0; i < val_num; ++i)
+    fprintf(dumpFile, "vals:\n");
+    for (size_t i = 0; i < val_num; ++i)
     {
-        printf("[%2d] %lf\n", i, vals[i]);
+        fprintf(dumpFile, "[%2lu] %lf\n", i, vals[i]);
     }
 
-    printf("\ncmds:\n");
-    for (uint32_t i = 0; i < cmd_num; ++i)
+    fprintf(dumpFile, "\ncmds:\n");
+    for (size_t i = 0; i < cmd_num; ++i)
     {
-        printf("[%2d] %2d (%6d %6d %6d) at %p\n", i, cmds[i].num, 
+        fprintf(dumpFile, "[%2lu] %2d (%6d %6d %6d) at %p\n", i, cmds[i].num, 
             cmds[i].arg1, cmds[i].arg2, cmds[i].arg3, cmd_ptrs[i]);
     }
 
-    printf("\nbuffer at [%p], buf at [%p]\n", buffer, buf);
-    printf("pagesize = %lu\n", PAGESIZE);
-    printf("buffer length = %lu\n", 1024 + PAGESIZE - 1);
-    printf("buf length = %lu\n", buffer - buf + (1024 + PAGESIZE - 1));
-    printf("\nbuf:\n");
-    for (int i = buf - buffer; i < 1024 + PAGESIZE - 1; ++i)
+    fprintf(dumpFile, "\nbuffer at [%p], buf at [%p]\n", buffer, buf);
+    fprintf(dumpFile, "page_size = %lu\n", page_size);
+    fprintf(dumpFile, "buffer length = %lu\n", 1024 + page_size - 1);
+    fprintf(dumpFile, "buf length = %lu\n", buffer - buf + (1024 + page_size - 1));
+    fprintf(dumpFile, "\nbuf:\n");
+    for (long int i = buf - buffer; i < 1024 + page_size - 1; ++i)
     {
-        printf(" %.2x", buffer[i]);
+        fprintf(dumpFile, " %.2x", buffer[i]);
     }
-    printf("\n\njumps:\n");
-    for (int i = 0; i < jumps.size(); ++i)
+    fprintf(dumpFile, "\n\njumps:\n");
+    for (size_t i = 0; i < jumps.size(); ++i)
     {
-        printf("From %lu at %p, to %lu at %p\n", 
+        fprintf(dumpFile, "From %lu at %p, to %lu at %p\n", 
             (jumps[i]->cmd_from - cmds), jumps[i]->ptr_from,
             (jumps[i]->cmd_to - cmds), jumps[i]->ptr_to);
     }
@@ -240,7 +287,7 @@ void Program::Dump()
 
 size_t Program::BufLength()
 {
-    return buffer - buf + (1024 + PAGESIZE - 1);
+    return buffer - buf + (1024 + page_size - 1);
 }
 
 const uint8_t *Program::Buf()
@@ -256,18 +303,39 @@ const uint8_t *Program::BufPtr()
 
 void Program::Exec()
 {
+    struct sigaction act;
+    memset(&act, 0, sizeof(act));
+    act.sa_sigaction = Program::sigsegv_action;
+    sigset_t set; 
+    sigemptyset(&set);                                                             
+    sigaddset(&set, SIGSEGV); 
+    act.sa_mask = set;
+    sigaction(SIGSEGV, &act, 0);
+
     ((void(*)(void))buf)();
 }
 
 Program::~Program()
 {
-    for (int i = 0; i < jumps.size(); ++i)
+    for (size_t i = 0; i < jumps.size(); ++i)
     {
         free(jumps[i]);
     }
-    //jumps?
     delete[] cmd_ptrs;
     delete[] buffer;
     delete[] cmds;
     delete[] vals;
+}
+
+inline void jxx_case(Jump *&jump, Command *cmds, uint8_t*& buf_ptr, size_t i, 
+    std::vector<Jump *>& jumps, bool conditional, size_t length)
+{
+    jump = (Jump *)malloc(sizeof(Jump));
+    jump->ptr_from = buf_ptr;
+    jump->ptr_to = nullptr;
+    jump->cmd_from = &(cmds[i]);
+    jump->cmd_to = &(cmds[cmds[i].arg1]);
+    jump->conditional = conditional;
+    jumps.push_back(jump);
+    buf_ptr += length;
 }
