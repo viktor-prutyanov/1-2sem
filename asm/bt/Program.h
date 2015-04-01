@@ -31,7 +31,7 @@
 #define ADD                 "\x58\x48\x01\x04\x24"
 #define L_ADD               5
     
-#define SUB                 "\x5b\x58\x48\x29\xc3\x53"
+#define SUB                 "\x5b\x58\x48\x29\xd8\x50"
 #define L_SUB               6
     
 #define NOP                 "\x90"
@@ -52,9 +52,15 @@
 #define JNE                 "\x58\x5b\x48\x39\xd8\x0f\x85" //
 #define JBE                 "\x58\x5b\x48\x39\xd8\x0f\x86" //
 #define JA                  "\x58\x5b\x48\x39\xd8\x0f\x87" //
-
+#define JZ                  "\x58\x48\x83\xf0\x00\x0f\x84" //
+#define JNZ                 "\x58\x48\x83\xf0\x00\x0f\x85" //
 #define L_JXX               11 
 
+#define RET                 "\xc3"
+#define L_RET               1
+
+#define CALL                "\xe8" //+ dword (relative address)
+#define L_CALL              5
 
 struct Command 
 {
@@ -188,12 +194,12 @@ Command* Program::Translate()
             memcpy(buf_ptr, OUT, L_OUT);
             buf_ptr += L_OUT;
             break;
-/*JMP*/case 10:
+/*JMP*/ case 10:
             memcpy(buf_ptr, JMP, 1);
             jxx_case(jump, cmds, buf_ptr, i, jumps, false, L_JMP);
             break;
 /*JE*/  case 11:
-            memcpy(buf_ptr, JE, 7);
+            memcpy(buf_ptr, JE,  7);
             jxx_case(jump, cmds, buf_ptr, i, jumps, true, L_JXX);
             break;
 /*JNE*/ case 12:
@@ -201,7 +207,7 @@ Command* Program::Translate()
             jxx_case(jump, cmds, buf_ptr, i, jumps, true, L_JXX);
             break;
 /*JA*/  case 13:
-            memcpy(buf_ptr, JA, 7);
+            memcpy(buf_ptr, JA,  7);
             jxx_case(jump, cmds, buf_ptr, i, jumps, true, L_JXX);
             break;
 /*JAE*/ case 14:
@@ -209,11 +215,19 @@ Command* Program::Translate()
             jxx_case(jump, cmds, buf_ptr, i, jumps, true, L_JXX);
             break;
 /*JB*/  case 15:
-            memcpy(buf_ptr, JB, 7);
+            memcpy(buf_ptr, JB,  7);
             jxx_case(jump, cmds, buf_ptr, i, jumps, true, L_JXX);
             break;
 /*JBE*/ case 16:
             memcpy(buf_ptr, JBE, 7);
+            jxx_case(jump, cmds, buf_ptr, i, jumps, true, L_JXX);
+            break;
+/*JZ*/  case 17:
+            memcpy(buf_ptr, JZ,  7);
+            jxx_case(jump, cmds, buf_ptr, i, jumps, true, L_JXX);
+            break;
+/*JNZ*/ case 18:
+            memcpy(buf_ptr, JNZ, 7);
             jxx_case(jump, cmds, buf_ptr, i, jumps, true, L_JXX);
             break;
 /*SWAP*/case 20:

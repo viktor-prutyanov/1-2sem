@@ -1,5 +1,5 @@
 all:
-	@g++ -std=gnu++11 -g bt.cpp -Wall -Werror -o bt && ./bt -d && echo ''
+	@g++ -std=gnu++11 -g bt.cpp -Wall -Werror -o bt && ./bt -d program.bin && echo ''
 
 build:
 	@g++ -std=gnu++11 -g bt.cpp -Wall -Werror -o bt && echo ''
