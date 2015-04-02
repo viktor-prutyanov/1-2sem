@@ -22,10 +22,10 @@
 #define PUSH_DWORD          "\x68" //+ dword
 #define L_PUSH_DWORD        5
 
-#define PUSH_REG            "\x41" //+ from '\x53' to '\x56' : from r11 to r14
+#define PUSH_REG            "\x41" //+ from 0x53 to 0x56 : from r11 to r14
 #define L_PUSH_REG          2
 
-#define POP_REG             "\x41" //+ from '\x5b' to '\x5e' : from r11 to r14
+#define POP_REG             "\x41" //+ from 0x5b to 0x5e : from r11 to r14
 #define L_POP_REG           2
 
 #define ADD                 "\x58\x48\x01\x04\x24"
@@ -62,6 +62,12 @@
 #define CALL                "\xe8" //+ dword (relative address)
 #define L_CALL              5
 
+#define MOV_REG_REG         "\x4d\x89" //+ byte 0xdN + 0x08 * (M - 10) for rN <- rM (at least, for r11-r14)
+#define L_MOV_REG_REG       3
+
+#define MOV_REG_NUM         "\x41" //+ from 0xbb to 0xbc : from r11 to r14 + dword
+#define L_MOV_REG_NUM       6
+
 struct Command 
 {
     uint16_t num;
@@ -79,7 +85,7 @@ struct Jump
     bool conditional;
 };
 
-inline void jxx_case(Jump *&jump, Command *cmds, uint8_t*& buf_ptr, size_t i,
+inline void jump_case(Jump *&jump, Command *cmds, uint8_t*& buf_ptr, size_t i,
     std::vector<Jump *>& jumps, bool conditional, size_t length);
 
 class Program
@@ -196,43 +202,67 @@ Command* Program::Translate()
             break;
 /*JMP*/ case 10:
             memcpy(buf_ptr, JMP, 1);
-            jxx_case(jump, cmds, buf_ptr, i, jumps, false, L_JMP);
+            jump_case(jump, cmds, buf_ptr, i, jumps, false, L_JMP);
             break;
 /*JE*/  case 11:
             memcpy(buf_ptr, JE,  7);
-            jxx_case(jump, cmds, buf_ptr, i, jumps, true, L_JXX);
+            jump_case(jump, cmds, buf_ptr, i, jumps, true, L_JXX);
             break;
 /*JNE*/ case 12:
             memcpy(buf_ptr, JNE, 7);
-            jxx_case(jump, cmds, buf_ptr, i, jumps, true, L_JXX);
+            jump_case(jump, cmds, buf_ptr, i, jumps, true, L_JXX);
             break;
 /*JA*/  case 13:
             memcpy(buf_ptr, JA,  7);
-            jxx_case(jump, cmds, buf_ptr, i, jumps, true, L_JXX);
+            jump_case(jump, cmds, buf_ptr, i, jumps, true, L_JXX);
             break;
 /*JAE*/ case 14:
             memcpy(buf_ptr, JAE, 7);
-            jxx_case(jump, cmds, buf_ptr, i, jumps, true, L_JXX);
+            jump_case(jump, cmds, buf_ptr, i, jumps, true, L_JXX);
             break;
 /*JB*/  case 15:
             memcpy(buf_ptr, JB,  7);
-            jxx_case(jump, cmds, buf_ptr, i, jumps, true, L_JXX);
+            jump_case(jump, cmds, buf_ptr, i, jumps, true, L_JXX);
             break;
 /*JBE*/ case 16:
             memcpy(buf_ptr, JBE, 7);
-            jxx_case(jump, cmds, buf_ptr, i, jumps, true, L_JXX);
+            jump_case(jump, cmds, buf_ptr, i, jumps, true, L_JXX);
             break;
 /*JZ*/  case 17:
             memcpy(buf_ptr, JZ,  7);
-            jxx_case(jump, cmds, buf_ptr, i, jumps, true, L_JXX);
+            jump_case(jump, cmds, buf_ptr, i, jumps, true, L_JXX);
             break;
 /*JNZ*/ case 18:
             memcpy(buf_ptr, JNZ, 7);
-            jxx_case(jump, cmds, buf_ptr, i, jumps, true, L_JXX);
+            jump_case(jump, cmds, buf_ptr, i, jumps, true, L_JXX);
+            break;
+/*MOV*/ case 19:
+            if ((-5 < cmds[i].arg1 && cmds[i].arg1 < 0) && (-5 < cmds[i].arg2 && cmds[i].arg2 < 0))
+            {
+                memcpy(buf_ptr, MOV_REG_REG, 2);
+                *(buf_ptr + 2) = (uint8_t)('\xda' - cmds[i].arg1 - '\x08' * (cmds[i].arg2 + 1));
+                buf_ptr += L_MOV_REG_REG;
+            }
+            else if ((-5 < cmds[i].arg1 && cmds[i].arg1 < 0) && (cmds[i].arg2 >= 0))
+            {
+                memcpy(buf_ptr, MOV_REG_NUM, 1);
+                *(buf_ptr + 1) = (uint8_t)('\xba' - cmds[i].arg1);
+                *((uint32_t *)(buf_ptr + 2))= (uint32_t)floor(vals[cmds[i].arg2]);
+                buf_ptr += L_MOV_REG_NUM;
+            }
+            else return cmds + i;
             break;
 /*SWAP*/case 20:
             memcpy(buf_ptr, SWAP, L_SWAP);
             buf_ptr += L_SWAP;
+            break;
+/*CALL*/case 21:
+            memcpy(buf_ptr, CALL, 1);
+            jump_case(jump, cmds, buf_ptr, i, jumps, false, L_CALL);
+            break;
+/*RET*/ case 22:
+            memcpy(buf_ptr, RET, L_RET);
+            buf_ptr += L_RET;
             break;
 /*DUP*/ case 23:    
             memcpy(buf_ptr, DUP, L_DUP);
@@ -341,7 +371,7 @@ Program::~Program()
     delete[] vals;
 }
 
-inline void jxx_case(Jump *&jump, Command *cmds, uint8_t*& buf_ptr, size_t i, 
+inline void jump_case(Jump *&jump, Command *cmds, uint8_t*& buf_ptr, size_t i, 
     std::vector<Jump *>& jumps, bool conditional, size_t length)
 {
     jump = (Jump *)malloc(sizeof(Jump));
