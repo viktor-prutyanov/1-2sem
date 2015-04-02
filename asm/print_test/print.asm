@@ -10,8 +10,7 @@ global main
 extern printf
 
 section .text
-    main:
-
+main:
     mov         r9, 24              ;5 arg
     mov         r8, 16              ;4 arg
     mov         rcx, 8              ;3 arg

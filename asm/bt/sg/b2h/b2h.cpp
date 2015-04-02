@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-int main()
+int main(int argc, char *argv[])
 {
     FILE* in_file = fopen("snippet.bin", "rb");
     fseek(in_file, 0, SEEK_END);
@@ -12,9 +12,19 @@ int main()
     fread((void *)code, sizeof(uint8_t), len, in_file);
     fclose(in_file);
 
-    for (int i = 0; i < len; ++i)
+    if (argc == 2 && argv[1][1] == 'x')
     {
-        printf("\\x%.2x", code[i]);
+        for (int i = 0; i < len; ++i)
+        {
+            printf("%.2x", code[i]);
+        }
+    }
+    else
+    {
+        for (int i = 0; i < len; ++i)
+        {
+            printf("\\x%.2x", code[i]);
+        }
     }
 
     free(code);

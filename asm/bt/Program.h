@@ -33,7 +33,13 @@
     
 #define SUB                 "\x5b\x58\x48\x29\xd8\x50"
 #define L_SUB               6
-    
+
+#define MUL                 "\x58\x5b\x48\xf7\xe3\x50"
+#define L_MUL               6
+
+#define DIV                 "\x58\x48\x31\xd2\x5b\x48\xf7\xf3\x50"
+#define L_DIV               9
+
 #define NOP                 "\x90"
 #define L_NOP               1
 
@@ -195,7 +201,15 @@ Command* Program::Translate()
 /*SUB*/ case 6:    
             memcpy(buf_ptr, SUB,  L_SUB);
             buf_ptr += L_SUB;
-            break;  
+            break;
+/*MUL*/ case 7:
+            memcpy(buf_ptr, MUL,  L_MUL);
+            buf_ptr += L_MUL;
+            break;
+/*DIV*/ case 8:
+            memcpy(buf_ptr, DIV,  L_DIV);
+            buf_ptr += L_DIV;
+            break;
 /*OUT*/ case 9:     
             memcpy(buf_ptr, OUT, L_OUT);
             buf_ptr += L_OUT;
