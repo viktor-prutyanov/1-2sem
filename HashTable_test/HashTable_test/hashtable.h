@@ -9,7 +9,7 @@
 */
 
 #include "list.h"
-#define PRIME_SIZE 32749//1009 //32749
+#define PRIME_SIZE 1009 //32749 //1009
 
 typedef char **HashTableItem_t;
 
