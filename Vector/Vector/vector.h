@@ -51,9 +51,9 @@ private:
  */
 template <typename T>
 Vector<T>::Vector()
-	: v_size(0), v_capacity(1), v_data(new T[1])
+	: v_size(0), v_capacity(1), v_data((T *)calloc(1, sizeof(T)))
 {
-	//Nothing to do
+    //Nothing to do
 }
 
 /**
@@ -64,7 +64,7 @@ Vector<T>::Vector()
  */
 template <typename T>
 Vector<T>::Vector(const Vector<T>& vector)
-	: v_size(vector.v_size), v_capacity(vector.v_capacity), v_data(new T[v_size])
+	: v_size(vector.v_size), v_capacity(vector.v_capacity), v_data((T *)calloc(vector.v_size, sizeof(T)))
 {
 	for (size_t i = 0; i < v_size; i++)
 	{
@@ -81,7 +81,7 @@ Vector<T>::Vector(const Vector<T>& vector)
  */
 template <typename T>
 Vector<T>::Vector(size_t size, const T& value)
-	: v_size(size), v_capacity(size), v_data(new T[size])
+	: v_size(size), v_capacity(size), v_data((T *)calloc(size, sizeof(T)))
 {
 	for (size_t i = 0; i < v_size; i++)
 	{
@@ -95,7 +95,7 @@ Vector<T>::Vector(size_t size, const T& value)
 template <typename T>
 Vector<T>::~Vector()
 {
-    delete[] v_data;
+    free(v_data);
 }
 
 /**

@@ -1,4 +1,4 @@
-extern void myprintf(const char *, ...);
+extern void _myprintf(const char *, ...);
 
 int main()
 {

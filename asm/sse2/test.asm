@@ -3,15 +3,55 @@ bits 64
 global main
 
 extern printf
+extern scanf
 
 section .text
 main:
     push        rbp
     mov         rbp, rsp
 
-    movsd       xmm0, qword [dbl]
-    mov         rdi, fmt_str
+    mov         rsi, buf
+    mov         rdi, fmt   
+    call        scanf
+
+    movsd       xmm0, qword [buf]
+    ;movsd       xmm1, qword [dbl]
+    ;addsd       xmm0, xmm1
+    mov         rdi, fmt
     call        printf
+
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
 
     mov         rax, 0
     pop         rbp
@@ -19,5 +59,5 @@ main:
     ret
 
 section .data
-    fmt_str:    db "Hello from %lf", 0x00
-    dbl:        dq 3.14159265358
+    fmt:        db "%lf", 0x00
+    buf:        dq 0x00

@@ -10,72 +10,7 @@
 #include <signal.h>
 #include <unistd.h>
 
-#define END                 "\xc3"
-#define L_END               1
-
-#define OUT                 "\x58\x55\x48\x89\xe5\x48\xff\xcd\xc6\x45\x00\x0a\x48\x31\xd2\xbb\x0a\x00\x00\x00\xb9\x01\x00\x00\x00\x48\xff\xc1\x48\x31\xd2\x48\xf7\xf3\x48\x83\xc2\x30\x48\xff\xcd\x88\x55\x00\x48\x83\xf8\x00\x75\xe7\xb8\x01\x00\x00\x00\xbf\x01\x00\x00\x00\x48\x89\xee\x48\x89\xca\x0f\x05\x5d"
-#define L_OUT               69
-
-#define IN                  "\x55\x48\x89\xe5\x48\x83\xed\x20\xba\x20\x00\x00\x00\x48\x89\xee\xbf\x00\x00\x00\x00\xb8\x00\x00\x00\x00\x0f\x05\x49\x89\xe9\x49\xff\xc9\x48\x89\xe9\x48\x01\xc1\x48\x83\xe9\x02\x41\xba\x01\x00\x00\x00\xbb\x0a\x00\x00\x00\x48\x31\xc0\x4d\x31\xc0\x48\x31\xc0\x8a\x01\x2c\x30\x49\xf7\xe2\x49\x01\xc0\x4c\x89\xd0\x48\xf7\xe3\x49\x89\xc2\x48\xff\xc9\x4c\x39\xc9\x75\xe2\x5d\x41\x50"
-#define L_IN                94
-
-#define PUSH_BYTE           "\x6a" //+ byte
-#define L_PUSH_BYTE         2
-
-#define PUSH_DWORD          "\x68" //+ dword
-#define L_PUSH_DWORD        5
-
-#define PUSH_REG            "\x41" //+ from 0x53 to 0x56 : from r11 to r14
-#define L_PUSH_REG          2
-
-#define POP_REG             "\x41" //+ from 0x5b to 0x5e : from r11 to r14
-#define L_POP_REG           2
-
-#define ADD                 "\x58\x48\x01\x04\x24"
-#define L_ADD               5
-    
-#define SUB                 "\x5b\x58\x48\x29\xd8\x50"
-#define L_SUB               6
-
-#define MUL                 "\x58\x5b\x48\xf7\xe3\x50"
-#define L_MUL               6
-
-#define DIV                 "\x58\x48\x31\xd2\x5b\x48\xf7\xf3\x50"
-#define L_DIV               9
-
-#define NOP                 "\x90"
-#define L_NOP               1
-
-#define DUP                 "\x58\x50\x50"
-#define L_DUP               3
-
-#define SWAP                "\x58\x5b\x50\x53"
-#define L_SWAP              4
-
-#define JMP                 "\xe9" //+ dword (relative address) 
-#define L_JMP               5
-
-#define JB                  "\x58\x5b\x48\x39\xd8\x0f\x82" //+ dword (relative address)
-#define JAE                 "\x58\x5b\x48\x39\xd8\x0f\x83" //
-#define JE                  "\x58\x5b\x48\x39\xd8\x0f\x84" // 
-#define JNE                 "\x58\x5b\x48\x39\xd8\x0f\x85" //
-#define JBE                 "\x58\x5b\x48\x39\xd8\x0f\x86" //
-#define JA                  "\x58\x5b\x48\x39\xd8\x0f\x87" //
-#define JZ                  "\x58\x48\x83\xf0\x00\x0f\x84" //
-#define JNZ                 "\x58\x48\x83\xf0\x00\x0f\x85" //
-#define L_JXX               11 
-
-#define RET                 "\xc3"
-#define L_RET               1
-
-#define CALL                "\xe8" //+ dword (relative address)
-#define L_CALL              5
-
-#define MOV_REG_REG         "\x4d\x89" //+ byte 0xdN + 0x08 * (M - 10) for rN <- rM (at least, for r11-r14)
-#define L_MOV_REG_REG       3
-
-#define MOV_REG_NUM         "\x41" //+ from 0xbb to 0xbc : from r11 to r14 + dword
-#define L_MOV_REG_NUM       6
+#include "commands.h"
 
 struct Command 
 {
@@ -112,24 +47,31 @@ public:
     size_t BufLength();
 
 private:
+    Program& operator=(const Program& other);
+
+    void (*sigsegv_action)(int, siginfo_t *, void *);
+    long page_size;
+
     char header[8];
     uint32_t cmd_num;
-    uint32_t val_num; 
+    uint32_t val_num;
+
     Command *cmds;
     uint8_t **cmd_ptrs;
     double *vals;
     uint8_t *buffer;
     uint8_t *buf;
     uint8_t *buf_ptr;
-    long page_size;
+    
     std::vector<Jump *> jumps;
-    void (*sigsegv_action)(int, siginfo_t *, void *);
 };
 
-Program::Program(FILE *binFile, void (*sigSegv_action)(int, siginfo_t *, void *)) 
+Program::Program(FILE *binFile, void (*sigSegv_action)(int, siginfo_t *, void *))
+    :sigsegv_action (sigSegv_action), page_size (sysconf(_SC_PAGESIZE)),
+    buffer (new uint8_t[1024 + page_size - 1]),
+    buf ((uint8_t *)(((size_t) buffer + page_size - 1) & ~(page_size - 1))),
+    buf_ptr (buf), jumps (std::vector<Jump *>())
 {
-    sigsegv_action = sigSegv_action;
-
     fread(header, 8, sizeof(char), binFile);
     fread(&val_num, 1, sizeof(uint32_t), binFile);
     fread(&cmd_num, 1, sizeof(uint32_t), binFile);
@@ -138,14 +80,14 @@ Program::Program(FILE *binFile, void (*sigSegv_action)(int, siginfo_t *, void *)
     cmds = new Command[cmd_num];
     cmd_ptrs = new uint8_t *[cmd_num];
 
+    memset((void *)vals, 0, val_num * sizeof(double));
+    memset((void *)cmds, 0, cmd_num * sizeof(Command));
+    memset((void *)cmd_ptrs, 0, cmd_num * sizeof(uint8_t *));
+
     fread(vals, val_num, sizeof(double), binFile);
     fread(cmds, cmd_num, sizeof(Command), binFile);
 
-    page_size = sysconf(_SC_PAGESIZE);
-    buffer = new uint8_t[1024 + page_size - 1];
     memset((void *)buffer, 0xc3, 1024 + page_size - 1);
-    buf = (uint8_t *)(((size_t) buffer + page_size - 1) & ~(page_size - 1));
-    buf_ptr = buf;
     mprotect(buf, 1024, PROT_READ | PROT_WRITE | PROT_EXEC);
 }
 
@@ -364,7 +306,6 @@ const uint8_t *Program::BufPtr()
 {
     return buf_ptr;
 }
-
 
 void Program::Exec()
 {
