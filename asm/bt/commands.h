@@ -7,17 +7,17 @@
 #define IN                  "\x55\x48\x89\xe5\x48\x83\xed\x20\xba\x20\x00\x00\x00\x48\x89\xee\xbf\x00\x00\x00\x00\xb8\x00\x00\x00\x00\x0f\x05\x49\x89\xe9\x49\xff\xc9\x48\x89\xe9\x48\x01\xc1\x48\x83\xe9\x02\x41\xba\x01\x00\x00\x00\xbb\x0a\x00\x00\x00\x48\x31\xc0\x4d\x31\xc0\x48\x31\xc0\x8a\x01\x2c\x30\x49\xf7\xe2\x49\x01\xc0\x4c\x89\xd0\x48\xf7\xe3\x49\x89\xc2\x48\xff\xc9\x4c\x39\xc9\x75\xe2\x5d\x41\x50"
 #define L_IN                94
 
-#define PUSH_BYTE           "\x6a" //+ byte
-#define L_PUSH_BYTE         2
+#define PUSH_BYTE              "\x6a" //+ byte
+#define L_PUSH_BYTE            2
 
-#define PUSH_DWORD          "\x68" //+ dword
-#define L_PUSH_DWORD        5
+#define PUSH_DWORD             "\x68" //+ dword
+#define L_PUSH_DWORD           5
 
-#define PUSH_REG            "\x41" //+ from 0x53 to 0x56 : from r11 to r14
-#define L_PUSH_REG          2
+#define PUSH_REG              "\x41" //+ from 0x53 to 0x56 : from r11 to r14
+#define L_PUSH_REG            2
 
-#define POP_REG             "\x41" //+ from 0x5b to 0x5e : from r11 to r14
-#define L_POP_REG           2
+#define POP_REG               "\x41" //+ from 0x5b to 0x5e : from r11 to r14
+#define L_POP_REG             2
 
 #define ADD                 "\x58\x48\x01\x04\x24"
 #define L_ADD               5
@@ -64,3 +64,9 @@
 
 #define MOV_REG_NUM         "\x41" //+ from 0xbb to 0xbc : from r11 to r14 + dword
 #define L_MOV_REG_NUM       6
+
+#define MOV_RR_RBASE        '\xda'
+#define MOV_RN_RBASE        '\xba'
+#define MOV_RR_RSTEP        '\x08'
+#define PUSH_R_RBASE        '\x52'
+#define  POP_R_RBASE        '\x5a'

@@ -1,12 +1,15 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/mman.h>
-#include <string.h>
-#include <stdint.h>
 #include <signal.h>
 #include <unistd.h>
 
 #include "Program.h"
+
+#define CLR_RED     "\x1b[31m"
+#define CLR_GRN     "\x1b[32m"
+#define CLR_DFLT    "\x1b[0m"
+
+Program *PROGRAM_PTR = nullptr; //Global pointer only for SIGSEGV handler
 
 int puts_usage()
 {
@@ -56,38 +59,61 @@ int main(int argc, char *argv[])
     FILE *binFile = fopen(argv[argc - 1], "rb");
     if (binFile == nullptr)
     {
-        printf("\x1b[31m(BT_LOAD_ERROR)\x1b[0m Invalid input file '%s'.\n", argv[argc - 1]);
+        printf("%s(BT_OPEN_ERROR)%s Invalid input file '%s'.\n", CLR_RED, CLR_DFLT, argv[argc - 1]);
         return EXIT_FAILURE;
     }
+
     Program program(binFile, SigSegv_action);
-    fclose(binFile);
+    PROGRAM_PTR = &program;
+
+    if (fclose(binFile) != 0)
+    {
+        printf("%s(BT_CLOSE_ERROR)%s Can't close input file '%s'.\n", 
+            CLR_RED, CLR_DFLT, argv[argc - 1]);
+        return EXIT_FAILURE;
+    }
 
     Command* lastCommand = program.Translate();
 
     FILE *dumpFile = fopen("dump.txt", "w");
+    if (binFile == nullptr)
+    {
+        printf("%s(BT_OPEN_ERROR)%s Can't open file 'dump.txt'.\n", CLR_RED, CLR_DFLT);
+        return EXIT_FAILURE;
+    }
+
     if (lastCommand == nullptr)
     {
-        if (!arg_quiet) printf("\x1b[32m(BT_TRANSLATE_OK)\x1b[0m Ready to exec.\n");
+        if (!arg_quiet) printf("%s(BT_TRANSLATE_OK)%s Ready to exec.\n", CLR_GRN, CLR_DFLT);
         if (arg_dump) program.Dump(dumpFile);
     }
     else
     {
-        printf("\x1b[31m(BT_TRANSLATE_ERROR)\x1b[0m Invalid command %d at %p in buf (try -d option).\n", 
-            lastCommand->num, program.BufPtr());
+        printf("%s(BT_TRANSLATE_ERROR)%s Invalid command %d at %p in buf (try -d option).\n",
+            CLR_RED, CLR_DFLT, lastCommand->num, program.BufPtr());
         if (arg_dump) program.Dump(dumpFile);
-        fclose(dumpFile);
+        if (fclose(dumpFile) != 0) printf("%s(BT_CLOSE_ERROR)%s Can't close dump file 'dump.txt'.\n", 
+            CLR_RED, CLR_DFLT);
         return EXIT_FAILURE;
     }
-    fclose(dumpFile);
+
+    if (fclose(dumpFile) != 0)
+    {
+        printf("%s(BT_CLOSE_ERROR)%s Can't close dump file 'dump.txt'.\n", 
+            CLR_RED, CLR_DFLT);
+        return EXIT_FAILURE;
+    }
 
     if (!arg_noexec) program.Exec();
 
-    if (!arg_quiet) printf("\x1b[32m(BT_EXEC_OK)\x1b[0m Program exit.\n");
+    if (!arg_quiet) printf("%s(BT_EXEC_OK)%s Program exit.\n", CLR_GRN, CLR_DFLT);
     return EXIT_SUCCESS;
 }
 
 void SigSegv_action(int sig, siginfo_t *siginfo, void *ptr)
 {
-    printf("\n\x1b[31m(BT_RUNTIME_ERROR)\x1b[0m SIGSEGV (#%d) has captured at %p. Program exit.\n", sig, siginfo->si_addr);
+    printf("\n%s(BT_RUNTIME_ERROR)%s SIGSEGV (#%d) has captured at %p. Program exit.\n",
+        CLR_RED, CLR_DFLT,sig, siginfo->si_addr);
+    PROGRAM_PTR->~Program();
     exit(EXIT_FAILURE);
 }
