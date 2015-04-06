@@ -1,5 +1,5 @@
 all:
-	@g++ -std=gnu++11 -g bt.cpp -Wall -Werror \ 
+	@g++ -std=gnu++11 -g bt.cpp -Wall -Werror \
 	-Wcast-qual -Wcast-align -Wwrite-strings -Winline -Wredundant-decls -Wpointer-arith \
 	-o bt && ./bt -d program.bin && echo ''
 

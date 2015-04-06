@@ -11,55 +11,75 @@
 
 Program *PROGRAM_PTR = nullptr; //Global pointer only for SIGSEGV handler
 
-int puts_usage()
-{
-    puts("\
-Binary translator from VPVM102 to x86_64 Linux\n\
-Usage: bt [-dnv] [binfile]\n\
- -d\tdump translation\n\
- -n\tnoexec mode (translate only)\n\
- -q\tquiet mode (errors only in output)");
-    return EXIT_FAILURE;
-}
-
 void SigSegv_action(int sig, siginfo_t *siginfo, void *ptr);
 
 int main(int argc, char *argv[])
 {
     bool arg_quiet = false, arg_dump = false, arg_noexec = false;
-    size_t args_len = 0;
-    switch (argc)
+    // size_t args_len = 0;
+    // switch (argc)
+    // {
+    // case 3:
+    //     if (argv[1][0] != '-') return puts_usage();
+    //     args_len = strlen(argv[1]);
+    //     for (size_t i = 1; i < args_len; ++i)
+    //     {
+    //         switch (argv[1][i])
+    //         {
+    //             case 'd':
+    //                 arg_dump = true;
+    //                 break;
+    //             case 'n':
+    //                 arg_noexec = true;
+    //                 break;
+    //             case 'q':
+    //                 arg_quiet = true;
+    //                 break;
+    //             default:
+    //                 return puts_usage();
+    //         }
+    //     }
+    // case 2:
+    //     break;
+    // default:
+    //     return puts_usage();
+    // }
+
+    char opt = 0;
+    char *binFileName = nullptr;
+
+    while((opt = getopt(argc, argv, "dnqf:")) != -1)
     {
-    case 3:
-        if (argv[1][0] != '-') return puts_usage();
-        args_len = strlen(argv[1]);
-        for (size_t i = 1; i < args_len; ++i)
+        switch(opt)
         {
-            switch (argv[1][i])
-            {
-                case 'd':
-                    arg_dump = true;
-                    break;
-                case 'n':
-                    arg_noexec = true;
-                    break;
-                case 'q':
-                    arg_quiet = true;
-                    break;
-                default:
-                    return puts_usage();
-            }
+        case 'd':
+            arg_dump = true;
+            break;
+        case 'n':
+            arg_noexec = true;
+            break;
+        case 'q':
+            arg_quiet = true;
+            break;
+        case 'f':
+            binFileName = optarg;
+            break;
+        default:
+            puts("\
+Binary translator from VPVM102 to x86_64 Linux\n\
+Usage: bt [-dnv] [binfile]\n\
+ -d\tdump translation\n\
+ -n\tnoexec mode (translate only)\n\
+ -q\tquiet mode (errors only in output)");
+            exit(EXIT_FAILURE);
+            break;
         }
-    case 2:
-        break;
-    default:
-        return puts_usage();
     }
 
-    FILE *binFile = fopen(argv[argc - 1], "rb");
+    FILE *binFile = fopen(binFileName, "rb");
     if (binFile == nullptr)
     {
-        printf("%s(BT_OPEN_ERROR)%s Invalid input file '%s'.\n", CLR_RED, CLR_DFLT, argv[argc - 1]);
+        printf("%s(BT_OPEN_ERROR)%s Invalid input file '%s'.\n", CLR_RED, CLR_DFLT, binFileName);
         return EXIT_FAILURE;
     }
 
@@ -69,7 +89,7 @@ int main(int argc, char *argv[])
     if (fclose(binFile) != 0)
     {
         printf("%s(BT_CLOSE_ERROR)%s Can't close input file '%s'.\n", 
-            CLR_RED, CLR_DFLT, argv[argc - 1]);
+            CLR_RED, CLR_DFLT, binFileName);
         return EXIT_FAILURE;
     }
 

@@ -115,7 +115,7 @@ Command* Program::Translate()
             if (-5 < cmds[i].arg1 && cmds[i].arg1 < 0)
             {
                 memcpy(buf_ptr, PUSH_REG, sizeof(PUSH_REG) - 1);
-                *(buf_ptr + 1) = (uint8_t)(PUSH_R_RBASE - cmds[i].arg1);
+                *(buf_ptr + sizeof(PUSH_REG) - 1) = (uint8_t)(PUSH_R_RBASE - cmds[i].arg1);
                 buf_ptr += L_PUSH_REG;
             }
             else
@@ -123,13 +123,13 @@ Command* Program::Translate()
                 if (-128. <= vals[cmds[i].arg1] && vals[cmds[i].arg1] <= 127.)
                 {
                     memcpy(buf_ptr, PUSH_BYTE, sizeof(PUSH_BYTE) - 1);
-                    *(buf_ptr + 1) = (uint8_t)floor(vals[cmds[i].arg1]);
+                    *(buf_ptr + sizeof(PUSH_BYTE) - 1) = (uint8_t)floor(vals[cmds[i].arg1]);
                     buf_ptr += L_PUSH_BYTE;
                 }
                 else
                 {
                     memcpy(buf_ptr, PUSH_DWORD, sizeof(PUSH_DWORD) - 1);
-                    *((uint32_t *)(buf_ptr + 1))= (uint32_t)floor(vals[cmds[i].arg1]);
+                    *((uint32_t *)(buf_ptr + sizeof(PUSH_DWORD) - 1))= (uint32_t)floor(vals[cmds[i].arg1]);
                     buf_ptr += L_PUSH_DWORD;
                 }
             }
@@ -138,7 +138,7 @@ Command* Program::Translate()
             if (-5 < cmds[i].arg1 && cmds[i].arg1 < 0)
             {
                 memcpy(buf_ptr, POP_REG, sizeof(POP_REG) - 1);
-                *(buf_ptr + 1) = (uint8_t)(POP_R_RBASE - cmds[i].arg1);
+                *(buf_ptr + sizeof(POP_REG) - 1) = (uint8_t)(POP_R_RBASE - cmds[i].arg1);
                 buf_ptr += L_POP_REG;
             }
             break;
@@ -206,14 +206,15 @@ Command* Program::Translate()
             if ((-5 < cmds[i].arg1 && cmds[i].arg1 < 0) && (-5 < cmds[i].arg2 && cmds[i].arg2 < 0))
             {
                 memcpy(buf_ptr, MOV_REG_REG, sizeof(MOV_REG_REG) - 1);
-                *(buf_ptr + 1) = (uint8_t)(MOV_RR_RBASE - cmds[i].arg1 - MOV_RR_RSTEP * (cmds[i].arg2 + 1));
+                *(buf_ptr + sizeof(MOV_REG_REG) - 1) = 
+                    (uint8_t)(MOV_RR_RBASE - cmds[i].arg1 - MOV_RR_RSTEP * (cmds[i].arg2 + 1));
                 buf_ptr += L_MOV_REG_REG;
             }
             else if ((-5 < cmds[i].arg1 && cmds[i].arg1 < 0) && (cmds[i].arg2 >= 0))
             {
                 memcpy(buf_ptr, MOV_REG_NUM, sizeof(MOV_REG_NUM) - 1);
-                *(buf_ptr + 1) = (uint8_t)(MOV_RN_RBASE - cmds[i].arg1);
-                *((uint32_t *)(buf_ptr + 2))= (uint32_t)floor(vals[cmds[i].arg2]);
+                *(buf_ptr + sizeof(MOV_REG_NUM) - 1) = (uint8_t)(MOV_RN_RBASE - cmds[i].arg1);
+                *((uint32_t *)(buf_ptr + (sizeof(MOV_REG_NUM) - 1) + 1))= (uint32_t)floor(vals[cmds[i].arg2]);
                 buf_ptr += L_MOV_REG_NUM;
             }
             else return cmds + i;
