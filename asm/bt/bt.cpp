@@ -16,35 +16,6 @@ void SigSegv_action(int sig, siginfo_t *siginfo, void *ptr);
 int main(int argc, char *argv[])
 {
     bool arg_quiet = false, arg_dump = false, arg_noexec = false;
-    // size_t args_len = 0;
-    // switch (argc)
-    // {
-    // case 3:
-    //     if (argv[1][0] != '-') return puts_usage();
-    //     args_len = strlen(argv[1]);
-    //     for (size_t i = 1; i < args_len; ++i)
-    //     {
-    //         switch (argv[1][i])
-    //         {
-    //             case 'd':
-    //                 arg_dump = true;
-    //                 break;
-    //             case 'n':
-    //                 arg_noexec = true;
-    //                 break;
-    //             case 'q':
-    //                 arg_quiet = true;
-    //                 break;
-    //             default:
-    //                 return puts_usage();
-    //         }
-    //     }
-    // case 2:
-    //     break;
-    // default:
-    //     return puts_usage();
-    // }
-
     char opt = 0;
     char *binFileName = nullptr;
 
