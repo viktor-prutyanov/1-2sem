@@ -1,6 +1,6 @@
 bits 64                         
 ;OUT: number will be pushed and print to stdout
-    pop     rax 
+    mov     rax, [rsp + 8]
 
     push    rbp
     mov     rbp, rsp

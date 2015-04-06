@@ -59,11 +59,12 @@ private:
 
     uint8_t *buffer;
     uint8_t *buf;
+    uint8_t *origin_buf;
     uint8_t *buf_ptr;
     double *vals;
     Command *cmds;
     uint8_t **cmd_ptrs;
-    
+
     std::vector<Jump *> jumps;
 };
 
@@ -72,6 +73,7 @@ Program::Program(FILE *binFile, void (*sigSegv_action)(int, siginfo_t *, void *)
     page_size (sysconf(_SC_PAGESIZE)),
     buffer (new uint8_t[1024 + page_size - 1]),
     buf ((uint8_t *)(((size_t) buffer + page_size - 1) & ~(page_size - 1))),
+    origin_buf (buf),
     buf_ptr (buf),
     vals (nullptr), 
     cmds (nullptr), 
@@ -101,6 +103,15 @@ Program::Program(FILE *binFile, void (*sigSegv_action)(int, siginfo_t *, void *)
 
 Command* Program::Translate()
 {
+    memcpy(buf, OUT, INSTR_SIZEOF(OUT));
+    buf += INSTR_SIZEOF(OUT);
+    memcpy(buf, RET, INSTR_SIZEOF(RET));
+    buf += INSTR_SIZEOF(RET);
+    memcpy(buf, IN, INSTR_SIZEOF(IN));
+    buf += INSTR_SIZEOF(IN);
+    memcpy(buf, RET, INSTR_SIZEOF(RET));
+    buf += INSTR_SIZEOF(RET);
+
     buf_ptr = buf;
     for (size_t i = 0; i < cmd_num; ++i)
     {
@@ -108,14 +119,14 @@ Command* Program::Translate()
         switch(cmds[i].num)
         {
 /*END*/ case 0:    
-            memcpy(buf_ptr, END, sizeof(END) - 1);
+            memcpy(buf_ptr, END, INSTR_SIZEOF(END));
             buf_ptr += L_END;
             break;
 /*PUSH*/case 1:
             if (-5 < cmds[i].arg1 && cmds[i].arg1 < 0)
             {
-                memcpy(buf_ptr, PUSH_REG, sizeof(PUSH_REG) - 1);
-                *(buf_ptr + sizeof(PUSH_REG) - 1) = (uint8_t)(PUSH_R_RBASE - cmds[i].arg1);
+                memcpy(buf_ptr, PUSH_REG, INSTR_SIZEOF(PUSH_REG));
+                *(buf_ptr + INSTR_SIZEOF(PUSH_REG)) = (uint8_t)(PUSH_R_RBASE - cmds[i].arg1);
                 buf_ptr += L_PUSH_REG;
             }
             else
@@ -123,13 +134,13 @@ Command* Program::Translate()
                 if (-128. <= vals[cmds[i].arg1] && vals[cmds[i].arg1] <= 127.)
                 {
                     memcpy(buf_ptr, PUSH_BYTE, sizeof(PUSH_BYTE) - 1);
-                    *(buf_ptr + sizeof(PUSH_BYTE) - 1) = (uint8_t)floor(vals[cmds[i].arg1]);
+                    *(buf_ptr + INSTR_SIZEOF(PUSH_BYTE)) = (uint8_t)floor(vals[cmds[i].arg1]);
                     buf_ptr += L_PUSH_BYTE;
                 }
                 else
                 {
-                    memcpy(buf_ptr, PUSH_DWORD, sizeof(PUSH_DWORD) - 1);
-                    *((uint32_t *)(buf_ptr + sizeof(PUSH_DWORD) - 1))= (uint32_t)floor(vals[cmds[i].arg1]);
+                    memcpy(buf_ptr, PUSH_DWORD, INSTR_SIZEOF(PUSH_DWORD));
+                    *((uint32_t *)(buf_ptr + INSTR_SIZEOF(PUSH_DWORD))) = (uint32_t)floor(vals[cmds[i].arg1]);
                     buf_ptr += L_PUSH_DWORD;
                 }
             }
@@ -137,8 +148,8 @@ Command* Program::Translate()
 /*POP*/ case 2:
             if (-5 < cmds[i].arg1 && cmds[i].arg1 < 0)
             {
-                memcpy(buf_ptr, POP_REG, sizeof(POP_REG) - 1);
-                *(buf_ptr + sizeof(POP_REG) - 1) = (uint8_t)(POP_R_RBASE - cmds[i].arg1);
+                memcpy(buf_ptr, POP_REG, INSTR_SIZEOF(POP_REG));
+                *(buf_ptr + INSTR_SIZEOF(POP_REG)) = (uint8_t)(POP_R_RBASE - cmds[i].arg1);
                 buf_ptr += L_POP_REG;
             }
             break;
@@ -163,58 +174,61 @@ Command* Program::Translate()
             buf_ptr += L_DIV;
             break;
 /*OUT*/ case 9:     
-            memcpy(buf_ptr, OUT, L_OUT);
-            buf_ptr += L_OUT;
+            memcpy(buf_ptr, CALL, INSTR_SIZEOF(CALL));
+            *((uint32_t *)(buf_ptr + INSTR_SIZEOF(CALL))) = (uint32_t)(origin_buf - buf_ptr - L_CALL);
+            buf_ptr += L_CALL;
+            memcpy(buf_ptr, BALANCE_POP_RAX, INSTR_SIZEOF(BALANCE_POP_RAX));        //Just for stack balance
+            buf_ptr += INSTR_SIZEOF(BALANCE_POP_RAX);
             break;
 /*JMP*/ case 10:
-            memcpy(buf_ptr, JMP, sizeof(JMP) - 1);
+            memcpy(buf_ptr, JMP, INSTR_SIZEOF(JMP));
             jump_case(cmds, buf_ptr, i, jumps, false, L_JMP);
             break;
 /*JE*/  case 11:
-            memcpy(buf_ptr, JE,  sizeof(JE)  - 1);
+            memcpy(buf_ptr, JE,  INSTR_SIZEOF(JE) );
             jump_case(cmds, buf_ptr, i, jumps, true, L_JXX);
             break;
 /*JNE*/ case 12:
-            memcpy(buf_ptr, JNE, sizeof(JNE) - 1);
+            memcpy(buf_ptr, JNE, INSTR_SIZEOF(JNE));
             jump_case(cmds, buf_ptr, i, jumps, true, L_JXX);
             break;
 /*JA*/  case 13:
-            memcpy(buf_ptr, JA,  sizeof(JA)  - 1);
+            memcpy(buf_ptr, JA,  INSTR_SIZEOF(JA) );
             jump_case(cmds, buf_ptr, i, jumps, true, L_JXX);
             break;
 /*JAE*/ case 14:
-            memcpy(buf_ptr, JAE, sizeof(JAE) - 1);
+            memcpy(buf_ptr, JAE, INSTR_SIZEOF(JAE));
             jump_case(cmds, buf_ptr, i, jumps, true, L_JXX);
             break;
 /*JB*/  case 15:
-            memcpy(buf_ptr, JB,  sizeof(JB)  - 1);
+            memcpy(buf_ptr, JB,  INSTR_SIZEOF(JB) );
             jump_case(cmds, buf_ptr, i, jumps, true, L_JXX);
             break;
 /*JBE*/ case 16:
-            memcpy(buf_ptr, JBE, sizeof(JBE) - 1);
+            memcpy(buf_ptr, JBE, INSTR_SIZEOF(JBE));
             jump_case(cmds, buf_ptr, i, jumps, true, L_JXX);
             break;
 /*JZ*/  case 17:
-            memcpy(buf_ptr, JZ,  sizeof(JZ)  - 1);
+            memcpy(buf_ptr, JZ,  INSTR_SIZEOF(JZ) );
             jump_case(cmds, buf_ptr, i, jumps, true, L_JXX);
             break;
 /*JNZ*/ case 18:
-            memcpy(buf_ptr, JNZ, sizeof(JNZ) - 1);
+            memcpy(buf_ptr, JNZ, INSTR_SIZEOF(JNZ));
             jump_case(cmds, buf_ptr, i, jumps, true, L_JXX);
             break;
 /*MOV*/ case 19:
             if ((-5 < cmds[i].arg1 && cmds[i].arg1 < 0) && (-5 < cmds[i].arg2 && cmds[i].arg2 < 0))
             {
-                memcpy(buf_ptr, MOV_REG_REG, sizeof(MOV_REG_REG) - 1);
-                *(buf_ptr + sizeof(MOV_REG_REG) - 1) = 
+                memcpy(buf_ptr, MOV_REG_REG, INSTR_SIZEOF(MOV_REG_REG));
+                *(buf_ptr + INSTR_SIZEOF(MOV_REG_REG)) = 
                     (uint8_t)(MOV_RR_RBASE - cmds[i].arg1 - MOV_RR_RSTEP * (cmds[i].arg2 + 1));
                 buf_ptr += L_MOV_REG_REG;
             }
             else if ((-5 < cmds[i].arg1 && cmds[i].arg1 < 0) && (cmds[i].arg2 >= 0))
             {
-                memcpy(buf_ptr, MOV_REG_NUM, sizeof(MOV_REG_NUM) - 1);
-                *(buf_ptr + sizeof(MOV_REG_NUM) - 1) = (uint8_t)(MOV_RN_RBASE - cmds[i].arg1);
-                *((uint32_t *)(buf_ptr + (sizeof(MOV_REG_NUM) - 1) + 1))= (uint32_t)floor(vals[cmds[i].arg2]);
+                memcpy(buf_ptr, MOV_REG_NUM, INSTR_SIZEOF(MOV_REG_NUM));
+                *(buf_ptr + INSTR_SIZEOF(MOV_REG_NUM)) = (uint8_t)(MOV_RN_RBASE - cmds[i].arg1);
+                *((uint32_t *)(buf_ptr + INSTR_SIZEOF(MOV_REG_NUM) + 1))= (uint32_t)floor(vals[cmds[i].arg2]);
                 buf_ptr += L_MOV_REG_NUM;
             }
             else return cmds + i;
@@ -224,7 +238,7 @@ Command* Program::Translate()
             buf_ptr += L_SWAP;
             break;
 /*CALL*/case 21:
-            memcpy(buf_ptr, CALL, sizeof(CALL) - 1);
+            memcpy(buf_ptr, CALL, INSTR_SIZEOF(CALL));
             jump_case(cmds, buf_ptr, i, jumps, false, L_CALL);
             break;
 /*RET*/ case 22:
@@ -236,8 +250,12 @@ Command* Program::Translate()
             buf_ptr += L_DUP;
             break;
 /*IN*/  case 24:
-            memcpy(buf_ptr, IN, L_IN);
-            buf_ptr += L_IN;
+            memcpy(buf_ptr, CALL, INSTR_SIZEOF(CALL));
+            *((uint32_t *)(buf_ptr + INSTR_SIZEOF(CALL))) = 
+                (uint32_t)(origin_buf + INSTR_SIZEOF(OUT) + INSTR_SIZEOF(RET) - buf_ptr - L_CALL);
+            buf_ptr += L_CALL;
+            memcpy(buf_ptr, BALANCE_PUSH_RAX, INSTR_SIZEOF(BALANCE_PUSH_RAX));      //Just for stack balance
+            buf_ptr += INSTR_SIZEOF(BALANCE_PUSH_RAX);
             break;
         default: 
             return cmds + i;
@@ -254,11 +272,13 @@ Command* Program::Translate()
                 jumps[j]->ptr_to = cmd_ptrs[i];
                 if (jumps[j]->conditional)
                 {
-                    *((uint32_t *)(jumps[j]->ptr_from + 7)) = (uint32_t)(cmd_ptrs[i] - jumps[j]->ptr_from - 11);
+                    *((uint32_t *)(jumps[j]->ptr_from + 7)) = 
+                        (uint32_t)(cmd_ptrs[i] - jumps[j]->ptr_from - 11);
                 }
                 else
                 {
-                    *((uint32_t *)(jumps[j]->ptr_from + 1)) = (uint32_t)(cmd_ptrs[i] - jumps[j]->ptr_from - 5);
+                    *((uint32_t *)(jumps[j]->ptr_from + 1)) = 
+                        (uint32_t)(cmd_ptrs[i] - jumps[j]->ptr_from - 5);
                 }
             }
         }
@@ -284,15 +304,23 @@ void Program::Dump(FILE *dumpFile)
             cmds[i].arg1, cmds[i].arg2, cmds[i].arg3, cmd_ptrs[i]);
     }
 
-    fprintf(dumpFile, "\nbuffer at [%p], buf at [%p]\n", buffer, buf);
+    fprintf(dumpFile, "\nbuffer at [%p], buf at [%p], origin_buf at [%p]\n", buffer, buf, origin_buf);
     fprintf(dumpFile, "page_size = %lu\n", page_size);
     fprintf(dumpFile, "buffer length = %lu\n", 1024 + page_size - 1);
     fprintf(dumpFile, "buf length = %lu\n", buffer - buf + (1024 + page_size - 1));
-    fprintf(dumpFile, "\nbuf:\n");
-    for (long int i = buf - buffer; i < 1024 + page_size - 1; ++i)
+
+    fprintf(dumpFile, "\norigin_buf:\n");
+    for (uint8_t *p = origin_buf; p < buf; ++p)
     {
-        fprintf(dumpFile, " %.2x", buffer[i]);
+        fprintf(dumpFile, " %.2x", *p);
     }
+
+    fprintf(dumpFile, "\nbuf:\n");
+    for (uint8_t *p = buf; p < buffer + 1024 + page_size - 1; ++p)
+    {
+        fprintf(dumpFile, " %.2x", *p);
+    }
+
     fprintf(dumpFile, "\n\njumps:\n");
     for (size_t i = 0; i < jumps.size(); ++i)
     {
@@ -355,5 +383,3 @@ inline void jump_case(Command *cmds, uint8_t*& buf_ptr, size_t i,
     jumps.push_back(jump);
     buf_ptr += length;
 }
-
-

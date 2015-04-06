@@ -40,7 +40,7 @@ next:
 
     pop     rbp
 
-    push    r8
+    mov     rax, r8
     ; mov     rdi, 0
     ; mov     rax, 0x3c           ;system call number (sys_exit)
     ; syscall                     ;call kernel
