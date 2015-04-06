@@ -67,10 +67,11 @@ int main(int argc, char *argv[])
         default:
             puts("\
 Binary translator from VPVM102 to x86_64 Linux\n\
-Usage: bt [-dnv] [binfile]\n\
+Usage: bt [-dnvf] file\n\
  -d\tdump translation\n\
  -n\tnoexec mode (translate only)\n\
- -q\tquiet mode (errors only in output)");
+ -q\tquiet mode (errors only in output)\n\
+ -f\tinput binary file");
             exit(EXIT_FAILURE);
             break;
         }
