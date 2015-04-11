@@ -1,3 +1,14 @@
+/**
+*   Program class for bt
+*
+*   @file Program.h
+*
+*   @date 03.2015
+*
+*   @copyright GNU GPL v2.0
+*
+*   @author Viktor Prutyanov mailto:vitteran@gmail.com
+*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -24,14 +35,17 @@ struct Command
 struct Jump
 {
     Command *cmd_from;
-    uint8_t *ptr_from;
     Command *cmd_to;
+    uint8_t *ptr_from;
     uint8_t *ptr_to;
     bool conditional;
+    bool visible;
 };
 
 inline void jump_case(Command *cmds, uint8_t*& buf_ptr, size_t i,
     std::vector<Jump *>& jumps, bool conditional, size_t length);
+
+inline void add_invisible_jump(uint8_t* ptr_to, std::vector<Jump *>& jumps);
 
 class Program
 {
@@ -42,6 +56,7 @@ public:
     void Dump(FILE *dumpFile);
     Command* Translate();
     void Exec();
+    void GenerateObj(FILE *objFile);
 
     const uint8_t *Buf();
     const uint8_t *BufPtr();
@@ -64,6 +79,7 @@ private:
     double *vals;
     Command *cmds;
     uint8_t **cmd_ptrs;
+    size_t end_offset;
 
     std::vector<Jump *> jumps;
 };
@@ -78,6 +94,7 @@ Program::Program(FILE *binFile, void (*sigSegv_action)(int, siginfo_t *, void *)
     vals (nullptr), 
     cmds (nullptr), 
     cmd_ptrs (nullptr),
+    end_offset (0),
     jumps (std::vector<Jump *>())
 {
     if (binFile == nullptr) throw std::invalid_argument("Null pointer as input file.");
@@ -120,6 +137,7 @@ Command* Program::Translate()
         {
 /*END*/ case 0:    
             memcpy(buf_ptr, END, INSTR_SIZEOF(END));
+            end_offset = buf_ptr - origin_buf;
             buf_ptr += L_END;
             break;
 /*PUSH*/case 1:
@@ -157,11 +175,11 @@ Command* Program::Translate()
             memcpy(buf_ptr, NOP,  L_NOP);
             buf_ptr += L_NOP;
             break;
-/*ADD*/ case 5:    
+/*ADD*/ case 5:     // See ../../doc/ADD.asm
             memcpy(buf_ptr, ADD,  L_ADD);
             buf_ptr += L_ADD;
             break;
-/*SUB*/ case 6:    
+/*SUB*/ case 6:     // See ../../doc/SUB.asm
             memcpy(buf_ptr, SUB,  L_SUB);
             buf_ptr += L_SUB;
             break;
@@ -173,10 +191,11 @@ Command* Program::Translate()
             memcpy(buf_ptr, DIV,  L_DIV);
             buf_ptr += L_DIV;
             break;
-/*OUT*/ case 9:     
+/*OUT*/ case 9:     // See ../../doc/OUT.asm
             memcpy(buf_ptr, CALL, INSTR_SIZEOF(CALL));
             *((uint32_t *)(buf_ptr + INSTR_SIZEOF(CALL))) = (uint32_t)(origin_buf - buf_ptr - L_CALL);
             buf_ptr += L_CALL;
+            add_invisible_jump(origin_buf, jumps);
             memcpy(buf_ptr, BALANCE_POP_RAX, INSTR_SIZEOF(BALANCE_POP_RAX));        //Just for stack balance
             buf_ptr += INSTR_SIZEOF(BALANCE_POP_RAX);
             break;
@@ -245,14 +264,15 @@ Command* Program::Translate()
             memcpy(buf_ptr, RET, L_RET);
             buf_ptr += L_RET;
             break;
-/*DUP*/ case 23:    
+/*DUP*/ case 23:    // See ../../doc/DUP.asm  
             memcpy(buf_ptr, DUP, L_DUP);
             buf_ptr += L_DUP;
             break;
-/*IN*/  case 24:
+/*IN*/  case 24:    // See ../../doc/IN.asm
             memcpy(buf_ptr, CALL, INSTR_SIZEOF(CALL));
             *((uint32_t *)(buf_ptr + INSTR_SIZEOF(CALL))) = 
                 (uint32_t)(origin_buf + INSTR_SIZEOF(OUT) + INSTR_SIZEOF(RET) - buf_ptr - L_CALL);
+            add_invisible_jump(origin_buf + INSTR_SIZEOF(OUT) + INSTR_SIZEOF(RET), jumps);
             buf_ptr += L_CALL;
             memcpy(buf_ptr, BALANCE_PUSH_RAX, INSTR_SIZEOF(BALANCE_PUSH_RAX));      //Just for stack balance
             buf_ptr += INSTR_SIZEOF(BALANCE_PUSH_RAX);
@@ -267,7 +287,7 @@ Command* Program::Translate()
     {
         for (size_t j = 0; j < jumps.size(); ++j)
         {
-            if (i == (jumps[j]->cmd_to) - cmds)
+            if ((i == (jumps[j]->cmd_to) - cmds) && (jumps[j]->visible))
             {
                 jumps[j]->ptr_to = cmd_ptrs[i];
                 if (jumps[j]->conditional)
@@ -285,6 +305,29 @@ Command* Program::Translate()
     }
 
     return nullptr;
+}
+
+void Program::GenerateObj(FILE *objFile)
+{
+    if (objFile == nullptr) throw std::invalid_argument("Null pointer as object file.");
+
+    size_t origin_buf_len = buf_ptr - origin_buf;
+    size_t jumps_size = jumps.size();
+    fwrite(&origin_buf_len, 1, sizeof(size_t), objFile);
+    fwrite(&jumps_size,     1, sizeof(size_t), objFile);
+    /*TODO: Add jumps from IN and OUT routines*/
+    fwrite(origin_buf, origin_buf_len, sizeof(uint8_t), objFile);
+
+    for (size_t i = 0; i < jumps_size; ++i)
+    {
+        fwrite(&(jumps[i]->ptr_to), 1, sizeof(uint8_t *), objFile);
+    }
+
+    fwrite(&origin_buf, 1, sizeof(uint8_t *), objFile);
+
+    size_t start_offset = buf - origin_buf;
+    fwrite(&start_offset, 1, sizeof(size_t), objFile);
+    fwrite(&end_offset,   1, sizeof(size_t), objFile);
 }
 
 void Program::Dump(FILE *dumpFile)
@@ -380,6 +423,18 @@ inline void jump_case(Command *cmds, uint8_t*& buf_ptr, size_t i,
     jump->cmd_from = &(cmds[i]);
     jump->cmd_to = &(cmds[cmds[i].arg1]);
     jump->conditional = conditional;
+    jump->visible = true;
     jumps.push_back(jump);
     buf_ptr += length;
+}
+
+inline void add_invisible_jump(uint8_t* ptr_to, std::vector<Jump *>& jumps)
+{
+    Jump *jump = new Jump;
+    memset(jump, 0, sizeof(Jump));
+
+    jump->visible = false;
+    jump->ptr_to = ptr_to;
+
+    jumps.push_back(jump);
 }

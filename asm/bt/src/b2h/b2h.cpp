@@ -1,3 +1,15 @@
+/**
+*   Binary file to hex view converter.
+*
+*   @file b2h.cpp
+*
+*   @date 04.2015
+*
+*   @copyright GNU GPL v2.0
+*
+*   @author Viktor Prutyanov mailto:vitteran@gmail.com
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>

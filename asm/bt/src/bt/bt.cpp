@@ -1,3 +1,14 @@
+/**
+*   Binary translation
+*
+*   @file bt.cpp
+*
+*   @date 03.2015
+*
+*   @copyright GNU GPL v2.0
+*
+*   @author Viktor Prutyanov mailto:vitteran@gmail.com
+*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
@@ -15,11 +26,11 @@ void SigSegv_action(int sig, siginfo_t *siginfo, void *ptr);
 
 int main(int argc, char *argv[])
 {
-    bool arg_quiet = false, arg_dump = false, arg_noexec = false;
+    bool arg_quiet = false, arg_dump = false, arg_noexec = false, arg_obj = false;
     char opt = 0;
-    char *binFileName = nullptr;
+    char *binFileName = nullptr, *objFileName = nullptr;
 
-    while((opt = getopt(argc, argv, "dnqf:")) != -1)
+    while((opt = getopt(argc, argv, "dnqi:o:")) != -1)
     {
         switch(opt)
         {
@@ -32,17 +43,22 @@ int main(int argc, char *argv[])
         case 'q':
             arg_quiet = true;
             break;
-        case 'f':
+        case 'i':
             binFileName = optarg;
+            break;
+        case 'o':
+            arg_obj = true;
+            objFileName = optarg;
             break;
         default:
             puts("\
 Binary translator from VPVM102 to x86_64 Linux\n\
-Usage: bt [-dnvf] file\n\
- -d\tdump translation\n\
+Usage: bt [-dnv] [-i file] [-o file]\n\
+ -d\tdump translation to 'bt_dump.txt'\n\
  -n\tnoexec mode (translate only)\n\
  -q\tquiet mode (errors only in output)\n\
- -f\tinput binary file");
+ -o\toutput object file (for sl)\n\
+ -i\tinput binary file");
             exit(EXIT_FAILURE);
             break;
         }
@@ -67,11 +83,15 @@ Usage: bt [-dnvf] file\n\
 
     Command* lastCommand = program.Translate();
 
-    FILE *dumpFile = fopen("dump.txt", "w");
-    if (binFile == nullptr)
+    FILE *dumpFile = nullptr;
+    if (arg_dump)
     {
-        printf("%s(BT_OPEN_ERROR)%s Can't open file 'dump.txt'.\n", CLR_RED, CLR_DFLT);
-        return EXIT_FAILURE;
+        dumpFile = fopen("bt_dump.txt", "w");
+        if (dumpFile == nullptr)
+        {
+            printf("%s(BT_OPEN_ERROR)%s Can't open/create file 'bt_dump.txt'.\n", CLR_RED, CLR_DFLT);
+            return EXIT_FAILURE;
+        }   
     }
 
     if (lastCommand == nullptr)
@@ -83,22 +103,45 @@ Usage: bt [-dnvf] file\n\
     {
         printf("%s(BT_TRANSLATE_ERROR)%s Invalid command %d at %p in buf (try -d option).\n",
             CLR_RED, CLR_DFLT, lastCommand->num, program.BufPtr());
-        if (arg_dump) program.Dump(dumpFile);
-        if (fclose(dumpFile) != 0) printf("%s(BT_CLOSE_ERROR)%s Can't close dump file 'dump.txt'.\n", 
+        if (arg_dump) 
+        {
+            program.Dump(dumpFile);
+            if (fclose(dumpFile) != 0) printf("%s(BT_CLOSE_ERROR)%s Can't close file 'bt_dump.txt'.\n", 
+                CLR_RED, CLR_DFLT);
+        }
+        return EXIT_FAILURE;
+    }
+
+    if (arg_dump && (fclose(dumpFile) != 0))
+    {
+        printf("%s(BT_CLOSE_ERROR)%s Can't close file 'bt_dump.txt'.\n", 
             CLR_RED, CLR_DFLT);
         return EXIT_FAILURE;
     }
 
-    if (fclose(dumpFile) != 0)
+    if (arg_obj)
     {
-        printf("%s(BT_CLOSE_ERROR)%s Can't close dump file 'dump.txt'.\n", 
-            CLR_RED, CLR_DFLT);
-        return EXIT_FAILURE;
+        FILE *objFile = fopen(objFileName, "wb");
+        if (objFile == nullptr)
+        {
+            printf("%s(BT_OPEN_ERROR)%s Can't open/create obj file '%s'.\n", 
+                CLR_RED, CLR_DFLT, objFileName);
+            return EXIT_FAILURE;
+        }
+        program.GenerateObj(objFile);
+        if (fclose(objFile) != 0)
+        {
+            printf("%s(BT_CLOSE_ERROR)%s Can't close obj file '%s'.\n", 
+                CLR_RED, CLR_DFLT, objFileName);
+            return EXIT_FAILURE;
+        }
+        printf("%s(BT_GEN_OBJ_OK)%s Object file '%s' created.\n", 
+            CLR_GRN, CLR_DFLT, objFileName);
     }
 
     if (!arg_noexec) program.Exec();
 
-    if (!arg_quiet) printf("%s(BT_EXEC_OK)%s Program exit.\n", CLR_GRN, CLR_DFLT);
+    if (!arg_quiet && !arg_noexec) printf("%s(BT_EXEC_OK)%s Program exit.\n", CLR_GRN, CLR_DFLT);
     return EXIT_SUCCESS;
 }
 

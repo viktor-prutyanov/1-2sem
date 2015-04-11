@@ -1,7 +1,5 @@
-; section .text
-; global _start
-; _start:
 bits 64
+;IN: scan number from stdin to rax
     push    rbp
     mov     rbp, rsp    
 
@@ -41,6 +39,3 @@ next:
     pop     rbp
 
     mov     rax, r8
-    ; mov     rdi, 0
-    ; mov     rax, 0x3c           ;system call number (sys_exit)
-    ; syscall                     ;call kernel

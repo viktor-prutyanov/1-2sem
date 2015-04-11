@@ -1,5 +1,16 @@
-#define END                 "\xc3"
-#define L_END               1
+/**
+*   Assembler snippets and constants for bt
+*
+*   @file commands.h
+*
+*   @date 04.2015
+*
+*   @copyright GNU GPL v2.0
+*
+*   @author Viktor Prutyanov mailto:vitteran@gmail.com
+*/
+#define END                 "\xc3\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90"
+#define L_END               12
 
 #define OUT                 "\x48\x8b\x44\x24\x08\x55\x48\x89\xe5\x48\xff\xcd\xc6\x45\x00\x0a\x48\x31\xd2\xbb\x0a\x00\x00\x00\xb9\x01\x00\x00\x00\x48\xff\xc1\x48\x31\xd2\x48\xf7\xf3\x48\x83\xc2\x30\x48\xff\xcd\x88\x55\x00\x48\x83\xf8\x00\x75\xe7\xb8\x01\x00\x00\x00\xbf\x01\x00\x00\x00\x48\x89\xee\x48\x89\xca\x0f\x05\x5d"
 #define L_OUT               73
@@ -70,6 +81,9 @@
 #define MOV_RR_RSTEP        '\x08'
 #define PUSH_R_RBASE        '\x52'
 #define  POP_R_RBASE        '\x5a'
+
+#define EXIT                "\xb8\x3c\x00\x00\x00\xbf\x00\x00\x00\x00\x0f\x05"
+#define L_EXIT              12
 
 #define INSTR_SIZEOF(instr) (sizeof(instr) - 1)
 
