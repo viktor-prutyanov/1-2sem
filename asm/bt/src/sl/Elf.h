@@ -1,9 +1,9 @@
 /**
-*   Elf class for sl 
+*   Elf creator class for sl 
 *
 *   @file Program.h
 *
-*   @date 03.2015
+*   @date 03.2015 - 04.2015
 *
 *   @copyright GNU GPL v2.0
 *
@@ -32,22 +32,11 @@
 
 #define ESS_LBLS_OFF    (sizeof('\0') + sizeof(ASM_SRC_NAME) + sizeof(BASE_LBL_NAME) * jumps_num)
 
-#define BASE_STRTAB_LEN (sizeof('0') + sizeof(ESS_LBLS) + sizeof(ASM_SRC_NAME))
+#define BASE_STRTAB_LEN (sizeof('\0') + sizeof(ESS_LBLS) + sizeof(ASM_SRC_NAME))
 
 #define BASE_VIRT_ADDR  0x400000
 
-// #define START_LABEL     "_start"
-// #define BSS_START_LABEL "__bss_start"
-// #define EDATA_LABEL     "_edata"
-// #define END_LABEL       "_end"
-
-
-#define TEXT_OFF        (sizeof(Elf64_Ehdr) + sizeof(Elf64_Phdr) + 8) //0x80
-
-// #define SHSTRTAB_NAME      ".shstrtab"       
-// #define STRTAB_NAME        ".strtab"          
-// #define SYMTAB_NAME        ".symtab"         
-// #define TEXT_NAME          ".text"                 
+#define TEXT_OFF        (sizeof(Elf64_Ehdr) + sizeof(Elf64_Phdr) + 8) //0x80           
 
 #define SHSTRTAB_LEN    0x21
 
@@ -110,15 +99,15 @@ Elf::Elf(FILE *objFile)
     fread(&jumps_num, 1, sizeof(size_t), objFile);
 
     text = new uint8_t[text_size];
-    jump_ptrs = new size_t[jumps_num];
-
     fread(text, text_size, sizeof(uint8_t), objFile);
+
+    jump_ptrs = new size_t[jumps_num];
     fread(jump_ptrs, jumps_num, sizeof(size_t), objFile);
 
     fread(&jump_ptrs_base, 1, sizeof(size_t), objFile);
 
     fread(&start_off, 1, sizeof(size_t), objFile);
-    fread(&end_off, 1, sizeof(size_t), objFile);
+    fread(&end_off,   1, sizeof(size_t), objFile);
 
     memcpy(text + end_off, EXIT_SRC, EXIT_SRC_LEN);
 
@@ -128,10 +117,11 @@ Elf::Elf(FILE *objFile)
     }
 
     symtabs = new Elf64_Sym[SYMTABS_NUM];
+    memset(symtabs, 0, sizeof(Elf64_Sym));
 
     strtab_size = BASE_STRTAB_LEN + jumps_num * sizeof(BASE_LBL_NAME);
     strtab = new char[strtab_size];
-    //TODO: memset
+    memset(symtabs, 0, sizeof(char));
 }   
 
 Elf::~Elf()
@@ -256,11 +246,11 @@ void Elf::Link()
     strtab[0] = '\0';
     memcpy(strtab + 1, ASM_SRC_NAME, sizeof(ASM_SRC_NAME));
     char *cur_str_ptr = strtab + 1 + sizeof(ASM_SRC_NAME);
-    for (size_t i = 0; i < jumps_num; ++i)
+    for (unsigned int i = 0; i < jumps_num; ++i)
     {
         memcpy(cur_str_ptr, BASE_LBL_NAME, sizeof(BASE_LBL_NAME));
         cur_str_ptr += sizeof(BASE_LBL_NAME);
-        sprintf(cur_str_ptr - sizeof("00"), "%.2d", i);
+        sprintf(cur_str_ptr - sizeof("00"), "%.2u", i);
     }
     memcpy(cur_str_ptr, ESS_LBLS, sizeof(ESS_LBLS));
     
@@ -337,7 +327,7 @@ void Elf::Store(FILE *elfFile)
 {
     if (elfFile == nullptr) throw std::invalid_argument("Null pointer as elf file.");
 
-    uint8_t padding[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+    uint8_t padding[8] = { };
 
     fwrite(&ehdr, sizeof(Elf64_Ehdr), 1, elfFile);
     fwrite(&phdr, sizeof(Elf64_Phdr), 1, elfFile);

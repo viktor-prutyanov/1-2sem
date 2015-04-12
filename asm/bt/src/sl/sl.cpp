@@ -3,7 +3,7 @@
 *
 *   @file sl.cpp
 *
-*   @date 03.2015
+*   @date 03.2015 - 04.2015
 *
 *   @copyright GNU GPL v2.0
 *
@@ -12,6 +12,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <elf.h>
 
 #include "Elf.h"
@@ -67,24 +69,26 @@ Usage: sl [-d] [-i file] [-o file]\n\
         return EXIT_FAILURE;
     }
 
-    FILE *dumpFile = fopen("sl_dump.txt", "w");
-    if (dumpFile == nullptr)
-    {
-        printf("%s(SL_OPEN_ERROR)%s Invalid input file 'sl_dump.txt'.\n", CLR_RED, CLR_DFLT);
-        return EXIT_FAILURE;
-    }
-
-    //elf.Dump(dumpFile);
-
+    
     elf.Link();
-
-    elf.Dump(dumpFile);
-
-    if (fclose(dumpFile) != 0)
+    
+    if (arg_dump)
     {
-        printf("%s(SL_CLOSE_ERROR)%s Can't close input file 'sl_dump.txt'.\n", 
-            CLR_RED, CLR_DFLT);
-        return EXIT_FAILURE;
+        FILE *dumpFile = fopen("sl_dump.txt", "w");
+        if (dumpFile == nullptr)
+        {
+            printf("%s(SL_OPEN_ERROR)%s Invalid input file 'sl_dump.txt'.\n", CLR_RED, CLR_DFLT);
+            return EXIT_FAILURE;
+        }
+        
+        elf.Dump(dumpFile);
+    
+        if (fclose(dumpFile) != 0)
+        {
+                printf("%s(SL_CLOSE_ERROR)%s Can't close input file 'sl_dump.txt'.\n", 
+                    CLR_RED, CLR_DFLT);
+                return EXIT_FAILURE;
+        }
     }
 
     FILE *elfFile = fopen(elfFileName, "wb");
@@ -103,33 +107,12 @@ Usage: sl [-d] [-i file] [-o file]\n\
         return EXIT_FAILURE;
     }
 
-    // printf("Size of Elf64_ehdr is %lu bytes.\n", sizeof(Elf64_Ehdr));
-    // FILE *elf_file = fopen("a.out", "rb");
-    // if (elf_file == nullptr) return EXIT_FAILURE;
+    if (chmod(elfFileName, 0777) != 0)
+    {
+        printf("%s(SL_CHMOD_ERROR)%s Can't set executable permissions for elf file '%s'.\n", 
+            CLR_RED, CLR_DFLT, elfFileName);
+        return EXIT_FAILURE;
+    }
 
-    // Elf64_Ehdr *ehdr = (Elf64_Ehdr *)calloc(1, sizeof(Elf64_Ehdr));
-    // fread(ehdr, 1, sizeof(Elf64_Ehdr), elf_file);
-
-    // printf("e_ident     = ");
-    // for (int i = 0; i < EI_NIDENT; ++i)
-    // {
-    //     printf("%.2X ", ehdr->e_ident[i]);
-    // }
-    // printf("\n");
-    // printf("e_type      = %X\n", ehdr->e_type     );      
-    // printf("e_machine   = %X\n", ehdr->e_machine  );   
-    // printf("e_version   = %X\n", ehdr->e_version  );   
-    // printf("e_entry     = %X\n", ehdr->e_entry    );     
-    // printf("e_phoff     = %X\n", ehdr->e_phoff    );     
-    // printf("e_shoff     = %X\n", ehdr->e_shoff    );     
-    // printf("e_flags     = %X\n", ehdr->e_flags    );     
-    // printf("e_ehsize    = %X\n", ehdr->e_ehsize   );    
-    // printf("e_phentsize = %X\n", ehdr->e_phentsize); 
-    // printf("e_phnum     = %X\n", ehdr->e_phnum    );     
-    // printf("e_shentsize = %X\n", ehdr->e_shentsize); 
-    // printf("e_shnum     = %X\n", ehdr->e_shnum    );     
-    // printf("e_shstrndx  = %X\n", ehdr->e_shstrndx );  
-
-    // fclose(elf_file);
     return EXIT_SUCCESS;
 }

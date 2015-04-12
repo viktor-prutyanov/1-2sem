@@ -19,14 +19,14 @@
 bits 64
 
 section     .text
-global      _myprintf
+global      myprintf
 
 ;###############################################
 ;# NUMBER MUST BE LONG (1337L instead of 1337) #
 ;###############################################
 ;
 ;prototype: void __cdecl _myprintf(const char *, ...);
-_myprintf:
+myprintf:
     push        rbp
     mov         rbp, rsp
 
