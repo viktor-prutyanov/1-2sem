@@ -29,11 +29,15 @@ _start:
     mov     rdx, rax 
     mov     rax, 0x01
     mov     rdi, 1   
-    mov     rsi, rbx 
+    mov     rsi, buffer
+    add     rsi, BUF_LEN
+    sub     rsi, rdx 
     syscall          
 
     Exit    0
 
+; In: System -> RDI, Amount of symbols -> RSI
+; Out: Number -> RAX
 convert_from:
     xor     r8, r8
     mov     rcx, rsi
@@ -52,18 +56,15 @@ next_digit:
     mov     rax, r8
     ret
 
-
-
+; In: System -> RDI, Number -> RSI
+; Out: Amount of symbols -> RAX
 convert_to:
-    push    rbp
-    mov     rbp, rsp
-    
     mov     rax, rsi
+    mov     r8, buffer
+    add     r8, BUF_LEN
+    mov     byte [r8], 0x0A
 
-    dec     rbp
-    mov     byte [rbp], 0x0A
-
-    xor     rdx, rdx            
+    xor     rdx, rdx   
     mov     rbx, rdi
     mov     rcx, 1
 next_div:
@@ -71,15 +72,13 @@ next_div:
     xor     rdx, rdx
     div     rbx
     add     rdx, '0'
-    dec     rbp
-    mov     byte [rbp], dl
+    dec     r8
+    mov     byte [r8], dl
     or      rax, rax
     jne     next_div
 
-    mov     rbx, rbp
     mov     rax, rcx        
 
-    pop     rbp
     ret 
 
 section     .data
