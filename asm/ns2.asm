@@ -1,19 +1,12 @@
-%macro Exit 1
-    mov         rax, 0x3c                   ;system call number (sys_exit)
-    mov         rdi, %1                     ;exitcode   
-    syscall
-%endmacro
-
 bits 64
-
-%define BUF_LEN 0xFF
 
 section     .text
 global      _start
+
 _start:
     mov     rax, 0
     mov     rsi, buffer
-    mov     rdx, BUF_LEN
+    mov     rdx, 0xFF
     mov     rdi, 0
     syscall
     sub     rax, 1
@@ -27,7 +20,7 @@ _start:
     call    convert_to
 
     mov     rsi, buffer
-    add     rsi, BUF_LEN
+    add     rsi, 0xFF
     sub     rsi, rax
     mov     rdi, 1   
     mov     rdx, rax 
@@ -35,7 +28,9 @@ _start:
     mov     rax, 0x01
     syscall          
 
-    Exit    0
+    mov     rax, 0x3c                   ;system call number (sys_exit)
+    mov     rdi, 0                      ;exitcode   
+    syscall
 
 ; In: System -> RDI, Amount of symbols -> RSI
 ; Out: Number -> RAX
@@ -66,7 +61,7 @@ digit1:
 convert_to:
     mov     rax, rsi
     mov     r8, buffer
-    add     r8, BUF_LEN
+    add     r8, 0xFF
     mov     byte [r8], 0x0A
     xor     rdx, rdx   
     mov     rbx, rdi
@@ -90,4 +85,4 @@ digit2:
     ret 
 
 section     .data
-    buffer  times BUF_LEN db 0x00
+    buffer  times 0xFF db 0x00
