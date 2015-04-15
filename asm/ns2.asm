@@ -19,11 +19,11 @@ _start:
     sub     rax, 1
 
     mov     rsi, rax
-    mov     rdi, 10
+    mov     rdi, 8 ; From system base
     call    convert_from
 
     mov     rsi, rax
-    mov     rdi, 16
+    mov     rdi, 16 ; To system base
     call    convert_to
 
     mov     rsi, buffer
