@@ -23,15 +23,16 @@ _start:
     call    convert_from
 
     mov     rsi, rax
-    mov     rdi, 2
+    mov     rdi, 16
     call    convert_to
 
-    mov     rdx, rax 
-    mov     rax, 0x01
-    mov     rdi, 1   
     mov     rsi, buffer
     add     rsi, BUF_LEN
-    sub     rsi, rdx 
+    sub     rsi, rax
+    mov     rdi, 1   
+    mov     rdx, rax 
+    add     rdx, 1
+    mov     rax, 0x01
     syscall          
 
     Exit    0
@@ -45,6 +46,10 @@ convert_from:
 next_digit:
     xor     rax, rax
     mov     al, byte [buffer + rcx - 1]
+    cmp     al, '9'
+    jbe     digit1
+    sub     al, 'a' - 10 - '0'
+digit1:
     sub     al, '0'
     mul     rbx
     add     r8, rax
@@ -63,7 +68,6 @@ convert_to:
     mov     r8, buffer
     add     r8, BUF_LEN
     mov     byte [r8], 0x0A
-
     xor     rdx, rdx   
     mov     rbx, rdi
     mov     rcx, 1
@@ -71,7 +75,11 @@ next_div:
     inc     rcx
     xor     rdx, rdx
     div     rbx
-    add     rdx, '0'
+    cmp     dl, 10
+    jb      digit2
+    add     dl, 'a' - 10 - '0'
+digit2:
+    add     dl, '0'
     dec     r8
     mov     byte [r8], dl
     or      rax, rax
