@@ -1,0 +1,12 @@
+Size of .text is 255 bytes.
+48 8b 44 24 08 55 48 89 e5 48 ff cd c6 45 00 0a 48 31 d2 bb 0a 00 00 00 b9 01 00 00 00 48 ff c1 48 31 d2 48 f7 f3 48 83 c2 30 48 ff cd 88 55 00 48 83 f8 00 75 e7 b8 01 00 00 00 bf 01 00 00 00 48 89 ee 48 89 ca 0f 05 5d c3 55 48 89 e5 48 83 ed 20 ba 20 00 00 00 48 89 ee bf 00 00 00 00 b8 00 00 00 00 0f 05 49 89 e9 49 ff c9 48 89 e9 48 01 c1 48 83 e9 02 41 ba 01 00 00 00 bb 0a 00 00 00 48 31 c0 4d 31 c0 48 31 c0 8a 01 2c 30 49 f7 e2 49 01 c0 4c 89 d0 48 f7 e3 49 89 c2 48 ff c9 4c 39 c9 75 e2 5d 4c 89 c0 c3 e8 9b ff ff ff 50 41 5b e8 14 00 00 00 41 54 e8 42 ff ff ff 58 b8 3c 00 00 00 bf 00 00 00 00 0f 05 41 53 6a 01 58 5b 48 39 d8 0f 84 1e 00 00 00 41 53 41 53 6a 01 5b 58 48 29 d8 50 41 5b e8 de ff ff ff 41 54 58 5b 48 f7 e3 50 41 5c c3 41 bc 01 00 00 00 c3 
+
+Amount of jumps/calls is 5.
+ 0) 0x0000004a
+ 1) 0x000000cb
+ 2) 0x00000000
+ 3) 0x000000f8
+ 4) 0x000000cb
+
+strtab at [0x201f4d0] (80) ($ instead of \0):
+$src.asm$label00$label01$label02$label03$label04$_start$__bss_start$_edata$_end$
