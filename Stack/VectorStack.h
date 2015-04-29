@@ -29,8 +29,9 @@ public:
     ~VectorStack();
     void Push(T value);
     T Pop();
+    T Peak():
     bool Ok();
-    bool Dump(std::ostream *dump_stream);
+    //bool Dump(std::ostream *dump_stream);
     bool IsEmpty();
     size_t GetSize();
     size_t GetCount();
@@ -79,9 +80,20 @@ T VectorStack<T>::Pop()
     if (count == 0)
     {
         throw std::out_of_range("Attemp to pop from empty stack. Nothing is done.");
-        return 0;
+        return Pop();
     }
     return v_data.at(--count);
+}
+
+template <class T>
+T VectorStack<T>::Peak()
+{
+    if (count == 0)
+    {
+        throw std::out_of_range("Attemp to pop from empty stack. Nothing is done.");
+        return Peak();
+    }
+    return v_data.at(count);
 }
 
 template <class T>
@@ -90,24 +102,24 @@ bool VectorStack<T>::Ok()
     return !(count > v_data.size());
 }
 
-template <class T>
-bool VectorStack<T>::Dump(std::ostream *dump_stream)
-{
-    if (Ok())
-    {
-        *dump_stream << "Stack is OK. \n\tCount = " << count << " Size = " << v_data.size() << " Capacity = " << v_data.capacity() << "\n";
-        for (size_t i = 0; i < count; i++)
-        {
-            *dump_stream << "\t[" << i << "] " << v_data.at(i) << "\n";
-        }
-        return true;
-    }
-    else
-    {
-        *dump_stream << "Stack is CORRUPTED. \n\tCount = " << count << " Size = " << v_data.size() << " Capacity = " << v_data.capacity() <<  "\n";
-        return false;
-    }
-}
+// template <class T>
+// bool VectorStack<T>::Dump(std::ostream *dump_stream)
+// {
+//     if (Ok())
+//     {
+//         *dump_stream << "Stack is OK. \n\tCount = " << count << " Size = " << v_data.size() << " Capacity = " << v_data.capacity() << "\n";
+//         for (size_t i = 0; i < count; i++)
+//         {
+//             *dump_stream << "\t[" << i << "] " << v_data.at(i) << "\n";
+//         }
+//         return true;
+//     }
+//     else
+//     {
+//         *dump_stream << "Stack is CORRUPTED. \n\tCount = " << count << " Size = " << v_data.size() << " Capacity = " << v_data.capacity() <<  "\n";
+//         return false;
+//     }
+// }
 
 template <class T>
 bool VectorStack<T>::IsEmpty()

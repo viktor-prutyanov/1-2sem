@@ -148,7 +148,7 @@ Usage: bt [-dnv] [-i file] [-o file]\n\
 void SigSegv_action(int sig, siginfo_t *siginfo, void *ptr)
 {
     printf("\n%s(BT_RUNTIME_ERROR)%s SIGSEGV (#%d) has captured at %p. Program exit.\n",
-        CLR_RED, CLR_DFLT,sig, siginfo->si_addr);
+        CLR_RED, CLR_DFLT, sig, siginfo->si_addr);
     PROGRAM_PTR->~Program();
     exit(EXIT_FAILURE);
 }

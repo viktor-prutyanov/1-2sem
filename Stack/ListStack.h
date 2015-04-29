@@ -30,6 +30,7 @@ public:
     ~ListStack();
     void Push(T value);
     T Pop();
+    T Peak();
     bool Ok();
     bool Dump(std::ostream *dump_stream);
     bool IsEmpty();
@@ -41,7 +42,7 @@ private:
 
 template <class T>
 ListStack<T>::ListStack() 
-    : l_data (list<T>(0, 0))
+    : l_data (list<T>())
 {
     //Nothing to do
 }
@@ -71,11 +72,22 @@ T ListStack<T>::Pop()
     if (l_data.size() == 0)
     {
         throw std::out_of_range("Attemp to pop from empty stack. Nothing is done.");
-        return 0;
+        return Pop();
     }
-    auto back = l_data.back();
+    T back = l_data.back();
     l_data.pop_back();
     return back;
+}
+
+template <class T>
+T ListStack<T>::Peak()
+{
+    if (l_data.size() == 0)
+    {
+        throw std::out_of_range("Attemp to get peak of empty stack. Nothing is done.");
+        return Peak();
+    }
+    return l_data.back();
 }
 
 template <class T>
@@ -84,11 +96,11 @@ bool ListStack<T>::Ok()
     return true;
 }
 
-template <class T>
+template <typename T>
 bool ListStack<T>::Dump(std::ostream *dump_stream)
 {
     *dump_stream << "Stack is OK. \n  Size = " << l_data.size() << "\n";
-    unsigned int i = 0;
+    size_t i = 0;
     std::for_each(l_data.begin(), l_data.end(), [dump_stream, &i](const T& item) 
         {
             *dump_stream << "\t[" << i << "] " << item << "\n";

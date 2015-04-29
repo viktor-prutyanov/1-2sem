@@ -1,0 +1,60 @@
+#include "ListStack.h"
+
+enum class ExprTokenType
+{
+    NUMBER = 0,
+    ADD = 1,
+    SUB = 2,
+    MUL = 3,
+    DIV = 4,
+    POW = 5,
+    OPENING_BR = 6,
+    CLOSING_BR = 7
+};
+
+class ExprToken
+{
+public:
+    ExprToken(const char *str, size_t len, ExprTokenType type);
+    ~ExprToken();
+
+    const char *Str;
+    size_t Len;
+    ExprTokenType Type;
+};
+
+ExprToken::ExprToken(const char *str, size_t len, ExprTokenType type)
+{
+    Str = str;
+    Len = len; 
+    Type = type;
+}
+
+ExprToken::~ExprToken() {}
+
+class TokenPtrListStack : public ListStack<ExprToken *>
+{
+public:
+    TokenPtrListStack();
+    ~TokenPtrListStack();
+    bool Dump(std::ostream *dump_stream);
+private:
+    list<ExprToken *> l_data;
+};
+
+TokenPtrListStack::TokenPtrListStack() 
+    : l_data (list<ExprToken *>()) {}
+
+TokenPtrListStack::~TokenPtrListStack() {}
+
+bool TokenPtrListStack::Dump(std::ostream *dump_stream)
+{
+    *dump_stream << "Stack is OK. \n  Size = " << l_data.size() << "\n";
+    size_t i = 0;
+    std::for_each(l_data.begin(), l_data.end(), [&i](const ExprToken *item) 
+        {
+            printf("\t[%lu] %lu %*s", i, item->Len, item->Len, item->Str);
+            i++;
+        });
+    return true;
+}
