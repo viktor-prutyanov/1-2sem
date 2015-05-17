@@ -14,16 +14,15 @@
 #include <ctype.h>
 #include <locale.h>
 #include <string.h>
-#include <process.h>
 
 #define MAX_WORD_SIZE 64
-#undef ASM_HASH 
+#define ASM_HASH 
 
 typedef struct test_params_t
 {
 	FILE *out_file;
 	long long int words_amount;
-	unsigned int(*HashFunc)(char **);
+    unsigned int (__fastcall *HashFunc)(char **);
 	char **words;
 	bool volatile thread_flag;
 	unsigned int thread_number;
@@ -34,7 +33,7 @@ long long unsigned int get_words_amount(FILE *in_file, _locale_t current_locale,
 void run_test(void *params);
 bool hashtable_nums_to_csv(HashTable_t *hashTable, FILE *out_file);
 
-unsigned int HashFunc6(char **item);
+unsigned int __fastcall HashFunc6(char **item);
 unsigned int AsmHashFunc6(char **item);
 
 FILE *LOGFILE = stdout;
@@ -80,7 +79,6 @@ int main(int argc, char *argv[])
 
 	fprintf(LOGFILE, "File is opened.\n");
 
-	char word[MAX_WORD_SIZE] = {};
 	int word_size = 0;
 	long long unsigned int words_amount = 0;
     long unsigned int len = 0;
@@ -152,18 +150,17 @@ int main(int argc, char *argv[])
 //}
 
 #ifdef ASM_HASH
-unsigned int HashFunc6(char **item)
+unsigned int __fastcall HashFunc6(char **item)
 {
-    char *str = *item;
     __asm
     {
-        mov     edi, str
+        mov	    edi, [ecx]
         xor     ecx, ecx
         xor     eax, eax
 hash_loop:
         mov     bl, [edi + ecx]
-        cmp     bl, 0
-        je      stop
+        or      bl, bl
+        jz      stop
         rol     eax, 1
         xor     al, bl
         inc     ecx
@@ -174,7 +171,7 @@ stop:
 #endif // ASM_HASH
 
 #ifndef ASM_HASH
-unsigned int HashFunc6(char **item)
+unsigned int __fastcall HashFunc6(char **item)
 {
 	int length = strlen(*item);
 	unsigned int h = 0;
@@ -255,7 +252,7 @@ bool hashtable_nums_to_csv(HashTable_t *hashTable, FILE *out_file)
 
 void run_test(void *params)
 {
-	fprintf(LOGFILE, "#%d thread started.\n", ((test_params_t *)params)->thread_number);
+	//fprintf(LOGFILE, "#%d thread started.\n", ((test_params_t *)params)->thread_number);
 	HashTable_t *hashTable = (HashTable_t *)calloc(1, sizeof(HashTable_t));
 	HashTable_ctor(hashTable, ((test_params_t *)params)->HashFunc);
 
@@ -267,12 +264,11 @@ void run_test(void *params)
 		}
 	}
 
-	hashtable_nums_to_csv(hashTable, ((test_params_t *)params)->out_file);
-
+	//hashtable_nums_to_csv(hashTable, ((test_params_t *)params)->out_file);
 	//HashTable_dump (hashTable);
 
 	HashTable_dtor(hashTable);
 	free(hashTable);
 	hashTable = nullptr;
-	fprintf(LOGFILE, "Thread #%d finished.\n", ((test_params_t *)params)->thread_number);
+	//fprintf(LOGFILE, "Thread #%d finished.\n", ((test_params_t *)params)->thread_number);
 }

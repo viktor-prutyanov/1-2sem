@@ -16,7 +16,7 @@ typedef char **HashTableItem_t;
 typedef struct HashTable_t
 {
     (List_t *) lists[PRIME_SIZE];
-    unsigned int (*HashFunc)(HashTableItem_t item);
+    unsigned int (__fastcall *HashFunc)(HashTableItem_t item);
 };
 
 /**
@@ -27,7 +27,7 @@ typedef struct HashTable_t
 
     @return true if construction successful, else returns false
 */
-bool HashTable_ctor(HashTable_t *hashTable, unsigned int (*HashFunc)(HashTableItem_t item));
+bool HashTable_ctor(HashTable_t *hashTable, unsigned int (__fastcall *HashFunc)(HashTableItem_t item));
 
 /**
     @brief Destructs the hash table

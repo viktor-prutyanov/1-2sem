@@ -13,7 +13,7 @@
 #include <stdlib.h>
 #include <assert.h>
 
-bool HashTable_ctor(HashTable_t *hashTable, unsigned int (*HashFunc)(HashTableItem_t item))
+bool HashTable_ctor(HashTable_t *hashTable, unsigned int (__fastcall *HashFunc)(HashTableItem_t item))
 {
     if (hashTable == nullptr) return false;
     for (int i = 0; i < PRIME_SIZE; i++)

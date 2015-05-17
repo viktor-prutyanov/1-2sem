@@ -110,6 +110,7 @@
       <SDLCheck>false</SDLCheck>
       <ExceptionHandling>false</ExceptionHandling>
       <CompileAs>CompileAsCpp</CompileAs>
+      <AssemblerOutput>All</AssemblerOutput>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
