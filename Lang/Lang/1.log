@@ -1,113 +1,69 @@
 Lexical analysis:
-Total 251 symbols.
-Total 105 tokens.
+Total 217 symbols.
+Total 61 tokens.
  0) type = 0 value = 123 
  1) type = 4 value =  10 
  2) type = 0 value =  40 
  3) type = 3 value =  97 
  4) type = 0 value =  41 
  5) type = 0 value =  59 
- 6) type = 4 value =  10 
+ 6) type = 6 value =   1 
  7) type = 0 value =  40 
- 8) type = 3 value =  98 
- 9) type = 0 value =  41 
-10) type = 0 value =  59 
-11) type = 4 value =  10 
-12) type = 0 value =  40 
-13) type = 3 value =  99 
-14) type = 0 value =  41 
-15) type = 0 value =  59 
-16) type = 3 value = 100 
-17) type = 5 value =  61 
-18) type = 3 value =  98 
-19) type = 1 value =  94 
-20) type = 2 value =   2 
-21) type = 1 value =  45 
-22) type = 2 value =   4 
-23) type = 1 value =  42 
-24) type = 3 value =  97 
-25) type = 1 value =  42 
-26) type = 3 value =  99 
-27) type = 0 value =  59 
-28) type = 6 value =   1 
-29) type = 0 value =  40 
-30) type = 3 value = 100 
-31) type = 5 value =   2 
-32) type = 2 value =   0 
-33) type = 0 value =  41 
-34) type = 0 value = 123 
-35) type = 3 value =  99 
-36) type = 5 value =  61 
-37) type = 2 value =   0 
+ 8) type = 3 value =  97 
+ 9) type = 5 value =   2 
+10) type = 2 value =   1 
+11) type = 0 value =  41 
+12) type = 0 value = 123 
+13) type = 3 value =  98 
+14) type = 5 value =  61 
+15) type = 2 value =   1 
+16) type = 0 value =  59 
+17) type = 3 value =  99 
+18) type = 5 value =  61 
+19) type = 2 value =   1 
+20) type = 0 value =  59 
+21) type = 6 value =   2 
+22) type = 0 value =  40 
+23) type = 3 value =  99 
+24) type = 5 value =   1 
+25) type = 3 value =  97 
+26) type = 0 value =  41 
+27) type = 0 value = 123 
+28) type = 3 value =  98 
+29) type = 5 value =  61 
+30) type = 3 value =  98 
+31) type = 1 value =  42 
+32) type = 3 value =  99 
+33) type = 0 value =  59 
+34) type = 4 value =   7 
+35) type = 0 value =  40 
+36) type = 3 value =  99 
+37) type = 0 value =  41 
 38) type = 0 value =  59 
-39) type = 3 value = 100 
-40) type = 5 value =  61 
-41) type = 3 value = 100 
-42) type = 1 value =  94 
-43) type = 0 value =  40 
-44) type = 2 value =   1 
-45) type = 1 value =  47 
-46) type = 2 value =   2 
-47) type = 0 value =  41 
-48) type = 0 value =  59 
-49) type = 6 value =   2 
-50) type = 0 value =  40 
-51) type = 3 value =  99 
-52) type = 5 value =  60 
-53) type = 2 value =   3 
-54) type = 0 value =  41 
-55) type = 0 value = 123 
-56) type = 4 value =   9 
-57) type = 0 value =  40 
-58) type = 0 value =  40 
-59) type = 3 value =  98 
-60) type = 1 value =  42 
-61) type = 0 value =  40 
-62) type = 1 value =  45 
-63) type = 2 value =   1 
-64) type = 0 value =  41 
-65) type = 1 value =  43 
-66) type = 3 value = 100 
-67) type = 0 value =  41 
-68) type = 1 value =  47 
-69) type = 0 value =  40 
-70) type = 2 value =   2 
-71) type = 1 value =  42 
-72) type = 3 value =  97 
-73) type = 0 value =  41 
-74) type = 0 value =  41 
-75) type = 0 value =  59 
-76) type = 4 value =   9 
-77) type = 0 value =  40 
-78) type = 0 value =  40 
-79) type = 3 value =  98 
-80) type = 1 value =  42 
-81) type = 0 value =  40 
-82) type = 1 value =  45 
-83) type = 2 value =   1 
-84) type = 0 value =  41 
-85) type = 1 value =  45 
-86) type = 3 value = 100 
-87) type = 0 value =  41 
-88) type = 1 value =  47 
-89) type = 0 value =  40 
-90) type = 2 value =   2 
-91) type = 1 value =  42 
-92) type = 3 value =  97 
-93) type = 0 value =  41 
-94) type = 0 value =  41 
-95) type = 0 value =  59 
-96) type = 4 value =   7 
-97) type = 0 value =  40 
-98) type = 3 value =  99 
-99) type = 0 value =  41 
-100) type = 0 value =  59 
-101) type = 0 value = 125 
-102) type = 0 value = 125 
-103) type = 0 value = 125 
-104) type = 0 value =   0 
+39) type = 0 value = 125 
+40) type = 0 value = 125 
+41) type = 6 value =   1 
+42) type = 0 value =  40 
+43) type = 3 value =  97 
+44) type = 5 value =  60 
+45) type = 2 value =   1 
+46) type = 0 value =  41 
+47) type = 0 value = 123 
+48) type = 3 value =  98 
+49) type = 5 value =  61 
+50) type = 1 value =  45 
+51) type = 2 value =   1 
+52) type = 0 value =  59 
+53) type = 0 value = 125 
+54) type = 4 value =   9 
+55) type = 0 value =  40 
+56) type = 3 value =  98 
+57) type = 0 value =  41 
+58) type = 0 value =  59 
+59) type = 0 value = 125 
+60) type = 0 value =   0 
 
 Syntax analysis:
-(~(scan(a))(~(scan(b))(~(scan(c))(~(=(d)(-(^(b)(2))(*(4)(*(a)(c)))))(~(if((d)(0))(~(=(c)(0))(~(=(d)(^(d)(/(1)(2))))(~(while(<(c)(3))(~(print(/(+(*(b)(-1))(d))(*(2)(a))))(~(print(/(-(*(b)(-1))(d))(*(2)(a))))(~(inc(c)))))))))))))))
-((scan(a))~((scan(b))~((scan(c))~(((d)=(((b)^(2))-((4)*((a)*(c)))))~((((d)(0))if(((c)=(0))~(((d)=((d)^((1)/(2))))~((((c)<(3))while((print((((b)*(-1))+(d))/((2)*(a))))~((print((((b)*(-1))-(d))/((2)*(a))))~((inc(c))~))))~))))~)))))
+(~(scan(a))(~(if((a)(1))(~(=(b)(1))(~(=(c)(1))(~(while((c)(a))(~(=(b)(*(b)(c)))(~(inc(c)))))))))(~(if(<(a)(1))(~(=(b)(-1))))(~(print(b))))))
+((scan(a))~((((a)(1))if(((b)=(1))~(((c)=(1))~((((c)(a))while(((b)=((b)*(c)))~((inc(c))~)))~))))~((((a)<(1))if(((b)=(-1))~))~((print(b))~))))
 Generation successfully completed.

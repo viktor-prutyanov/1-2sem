@@ -1,54 +1,20 @@
 in
 pop ax
-in
-pop bx
-in
-pop cx
-push cx
-push ax
-mul
-push 4
-mul
-push 2
-push bx
-pow
-sub
-pop dx
-push 0
-push dx
-jb _l1
-push 0
-pop cx
-push 2
 push 1
-div
-push dx
-pow
-pop dx
+push ax
+jb _l1
+push 1
+pop bx
+push 1
+pop cx
 :l1
-push 3
+push ax
 push cx
-jae _l2
-push ax
-push 2
-mul
-push dx
-push -1
+ja _l2
+push cx
 push bx
 mul
-add
-div
-out
-push ax
-push 2
-mul
-push dx
-push -1
-push bx
-mul
-sub
-div
-out
+pop bx
 push cx
 push 1
 add
@@ -56,4 +22,12 @@ pop cx
 jmp _l1
 :l2
 :l3
+push 1
+push ax
+jae _l4
+push -1
+pop bx
+:l4
+push bx
+out
 end
