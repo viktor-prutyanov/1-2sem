@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
 Simple linker from bt object files to x86_64 Linux ELF\n\
 Usage: sl [-d] [-i file] [-o file]\n\
  -d\tdump link to sl_dump.txt\n\
- -o\toutput executable file (for sl)\n\
+ -o\toutput executable file\n\
  -i\tinput object file");
             exit(EXIT_FAILURE);
             break;
