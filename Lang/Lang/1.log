@@ -1,5 +1,5 @@
 Lexical analysis:
-Total 202 symbols.
+Total 251 symbols.
 Total 105 tokens.
  0) type = 0 value = 123 
  1) type = 4 value =  10 
@@ -36,25 +36,25 @@ Total 105 tokens.
 32) type = 2 value =   0 
 33) type = 0 value =  41 
 34) type = 0 value = 123 
-35) type = 3 value = 100 
+35) type = 3 value =  99 
 36) type = 5 value =  61 
-37) type = 3 value = 100 
-38) type = 1 value =  94 
-39) type = 0 value =  40 
-40) type = 2 value =   1 
-41) type = 1 value =  47 
-42) type = 2 value =   2 
-43) type = 0 value =  41 
-44) type = 0 value =  59 
-45) type = 3 value =  99 
-46) type = 5 value =  61 
-47) type = 2 value =   0 
+37) type = 2 value =   0 
+38) type = 0 value =  59 
+39) type = 3 value = 100 
+40) type = 5 value =  61 
+41) type = 3 value = 100 
+42) type = 1 value =  94 
+43) type = 0 value =  40 
+44) type = 2 value =   1 
+45) type = 1 value =  47 
+46) type = 2 value =   2 
+47) type = 0 value =  41 
 48) type = 0 value =  59 
 49) type = 6 value =   2 
 50) type = 0 value =  40 
 51) type = 3 value =  99 
-52) type = 5 value =   1 
-53) type = 2 value =   2 
+52) type = 5 value =  60 
+53) type = 2 value =   3 
 54) type = 0 value =  41 
 55) type = 0 value = 123 
 56) type = 4 value =   9 
@@ -108,6 +108,6 @@ Total 105 tokens.
 104) type = 0 value =   0 
 
 Syntax analysis:
-(~(scan(a))(~(scan(b))(~(scan(c))(~(=(d)(-(^(b)(2))(*(4)(*(a)(c)))))(~(if((d)(0))(~(=(d)(^(d)(/(1)(2))))(~(=(c)(0))(~(while((c)(2))(~(print(/(+(*(b)(-1))(d))(*(2)(a))))(~(print(/(-(*(b)(-1))(d))(*(2)(a))))(~(inc(c)))))))))))))))
-((scan(a))~((scan(b))~((scan(c))~(((d)=(((b)^(2))-((4)*((a)*(c)))))~((((d)(0))if(((d)=((d)^((1)/(2))))~(((c)=(0))~((((c)(2))while((print((((b)*(-1))+(d))/((2)*(a))))~((print((((b)*(-1))-(d))/((2)*(a))))~((inc(c))~))))~))))~)))))
+(~(scan(a))(~(scan(b))(~(scan(c))(~(=(d)(-(^(b)(2))(*(4)(*(a)(c)))))(~(if((d)(0))(~(=(c)(0))(~(=(d)(^(d)(/(1)(2))))(~(while(<(c)(3))(~(print(/(+(*(b)(-1))(d))(*(2)(a))))(~(print(/(-(*(b)(-1))(d))(*(2)(a))))(~(inc(c)))))))))))))))
+((scan(a))~((scan(b))~((scan(c))~(((d)=(((b)^(2))-((4)*((a)*(c)))))~((((d)(0))if(((c)=(0))~(((d)=((d)^((1)/(2))))~((((c)<(3))while((print((((b)*(-1))+(d))/((2)*(a))))~((print((((b)*(-1))-(d))/((2)*(a))))~((inc(c))~))))~))))~)))))
 Generation successfully completed.

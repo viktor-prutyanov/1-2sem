@@ -17,18 +17,18 @@ pop dx
 push 0
 push dx
 jb _l1
+push 0
+pop cx
 push 2
 push 1
 div
 push dx
 pow
 pop dx
-push 0
-pop cx
 :l1
-push 2
+push 3
 push cx
-ja _l2
+jae _l2
 push ax
 push 2
 mul

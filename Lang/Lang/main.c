@@ -22,12 +22,17 @@ size_t file_length(FILE *file)
     return length;
 }
 
-int main()
+int main(int argc, char const *argv[])
 {
+    if (argc != 2)
+    {
+        printf("Usage:\n\tlang <file.src>\n");
+        return EXIT_FAILURE;
+    }
     FILE *log_file = fopen ("1.log", "w");
-    FILE *in_file  = fopen ("1.src", "r");
+    FILE *in_file  = fopen (argv[1], "r");
     FILE *asm_file = fopen ("1.asm", "w");
-    if (in_file == nullptr || log_file == nullptr)
+    if (in_file == nullptr || log_file == nullptr || asm_file == nullptr)
     {
         printf ("Error opening file.\n");
         return EXIT_FAILURE;

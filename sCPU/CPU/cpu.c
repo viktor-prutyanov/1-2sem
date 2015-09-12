@@ -276,7 +276,7 @@ bool CPU_sub(Stack_t *stack)
         return false;
     }
 
-    return Stack_push (stack, arg1 - arg2);
+    return Stack_push (stack, arg2 - arg1);
 }
 
 bool CPU_div(Stack_t *stack)
